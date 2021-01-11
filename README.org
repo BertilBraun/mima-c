@@ -1,0 +1,73 @@
+#+TITLE: Readme
+
+* Sprache:
+1. Arithmetic Expressions
+   #+begin_example
+   (1 + 2 - 2 / 3 * -5 % 10)
+   #+end_example
+2. Variables (Assignment)
+   #+begin_example
+   int a = 5;
+   #+end_example
+   We differentiate between:
+   - Global
+   - Local
+   Variables
+   /Note:/
+      Assignment returns the assigned value to allow for:
+      #+begin_example
+      a = b = 5;
+      #+end_example
+3. Scope
+   - *local* scope:
+     #+begin_example
+     {
+     int a = 1;
+     int b = 1;
+             {
+                 int b = 5;
+                 a + b;
+             }
+     }
+     #+end_example
+   - *global* scope
+
+4. Function declaration
+   If we do a single pass compiler we need forward delaration
+   ?How will this work for the compiler?
+5. Functiondefinition
+   void a(int b, int c) { BODY }
+6. Functioncalls
+   a(b, c)
+
+* Modules:
+** Preprozessor
+- Comments
+- (Macros)
+** Lexer
+- Generates Tokens
+Difficulty?:
+- Handles strings
+** Parser
+Generates AST to be used by compiler / interpreter
+What type of parser?
+- Recursive descent?
+- Parser combinators?
+
+** Interpreter
+** Compiler (future)
+- Single file (at least no linker)
+- (type system)
+*** Address Space:
+- Code
+- Data
+- Registers (pseudo)
+- Stack
+- Heap
+
+* Brainstorming
+Option 2:
+Compiler -> bytecode
+
+Mima:
+Interpreter <- bytecode
