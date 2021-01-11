@@ -40,6 +40,15 @@
 6. Functioncalls
    a(b, c)
 
+* Grammar
+#+begin_src
+expr   -> expr [PLUS, MINUS] factor | factor
+factor -> factor [MULTIPLY, DIVIDE] mod | mod
+mod    -> mod [MODULO] unary | unary
+unary  -> MINUS value | value
+value  -> INTLITERAL | ( expr )
+#+end_src
+
 * Modules:
 ** Preprozessor
 - Comments
