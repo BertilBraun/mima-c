@@ -20,3 +20,6 @@ venv.bak/
 
 # some other stuff
 .ccls-cache/
+
+.vs
+.idea

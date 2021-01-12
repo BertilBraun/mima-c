@@ -62,11 +62,4 @@ class TokenStream(object):
         return Token(TokenType.EOS) if len(self.tokens) <= n else self.tokens[n]
 
     def __repr__(self):
-        if len(self.tokens) == 0:
-            return "[]"
-
-        ret_str = "[" + str(self.tokens[0])
-        for t in self.tokens[1:]:
-            ret_str += ", " + str(t)
-        ret_str += "]"
-        return ret_str
+        return '[' + ", ".join(str(t) for t in self.tokens) + ']'
