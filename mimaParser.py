@@ -177,7 +177,19 @@ class AEParser(Parser):
 
         parameters = []
         while (self._peekType(TokenType.IDENTIFIER)):
-            parameters.append(self.vardecl())
+            var_type = self._eat(TokenType.IDENTIFIER)
+            var_identifier = self._eat(TokenType.IDENTIFIER)
+
+            # NOTE: this could be it's own class to make things more clear
+            var_data = (var_type, var_identifier)
+
+            # Duplicate code that could be extraced
+            if self._peekType(TokenType.EQUALS):
+                self._eat(TokenType.EQUALS)
+                parameters.append(UnaryNode(NodeType.VAR, self.expr(), var_data))
+            else:
+                parameters.append(ValueNode(NodeType.VAR, var_data))
+
             if (self._peekType(TokenType.COMMA)):
                 self._eat(TokenType.COMMA)
             else:
