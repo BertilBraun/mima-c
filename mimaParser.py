@@ -28,13 +28,13 @@ class Parser(object):
 class AEParser(Parser):
     def functioncall(self) -> Node:
         token = self._eat(TokenType.IDENTIFIER)
+
         self._eat(TokenType.LPAREN)
-        # TODO: parse args
         self._eat(TokenType.RPAREN)
         return ValueNode(NodeType.FUNCCALL, token.value)
 
     def value(self) -> Node:
-        if self._peek().token_type == TokenType.INTLITERAL:
+        if self._peekType(TokenType.INTLITERAL):
             token = self._eat(TokenType.INTLITERAL)
             return ValueNode(NodeType.INTLITERAL, token.value)
         if self._peekType(TokenType.IDENTIFIER):
@@ -51,14 +51,14 @@ class AEParser(Parser):
         return n1
 
     def unary(self) -> Node:
-        if self._peek().token_type == TokenType.MINUS:
+        if self._peekType(TokenType.MINUS):
             self._eat(TokenType.MINUS)
             return UnaryNode(NodeType.MINUS, self.value())
         return self.value()
 
     def mod(self) -> Node:
         n1 = self.unary()
-        while self._peek().token_type == TokenType.MODULO:
+        while self._peekType(TokenType.MODULO):
             self._eat(TokenType.MODULO)
             n2 = self.mod()
             n1 = BinaryNode(NodeType.MODULO, n1, n2)
@@ -115,18 +115,18 @@ class AEParser(Parser):
         # UnaryNode for declaration with assignment
 
         # Duplicate code that could be extraced
-        if self._peek().token_type == TokenType.EQUALS:
+        if self._peekType(TokenType.EQUALS):
             self._eat(TokenType.EQUALS)
             statements.append(UnaryNode(NodeType.DECL, self.expr(), var_data))
         else:
             statements.append(ValueNode(NodeType.DECL, var_data))
 
-        while (self._peek().token_type == TokenType.COMMA):
+        while (self._peekType(TokenType.COMMA)):
             self._eat(TokenType.COMMA)
             var_identifier = self._eat(TokenType.IDENTIFIER)
             var_data = (var_type, var_identifier)
 
-            if self._peek().token_type == TokenType.EQUALS:
+            if self._peekType(TokenType.EQUALS):
                 self._eat(TokenType.EQUALS)
                 statements.append(UnaryNode(NodeType.DECL, self.expr(), var_data))
             else:
@@ -137,8 +137,8 @@ class AEParser(Parser):
 
     # TODO: differentiate between general statements and blockstatements
     def statement(self) -> Node:
-        if self._peek().token_type == TokenType.IDENTIFIER:
-            if self._peek(1).token_type == TokenType.IDENTIFIER:
+        if self._peekType(TokenType.IDENTIFIER):
+            if self._peekType(TokenType.IDENTIFIER, 1):
                 node = self.vardecl()
             else:
                 node = self.varassign()
@@ -158,15 +158,25 @@ class AEParser(Parser):
     def funcdecl(self) -> Node:
         func_return_type = self._eat(TokenType.IDENTIFIER)
         func_identifier = self._eat(TokenType.IDENTIFIER)
-        # TODO: make this its own class
-        func_data = (func_return_type, func_identifier)
+
         self._eat(TokenType.LPAREN)
-        # TODO: implement parameters
+
+        parameters = []
+        while (self._peekType(TokenType.IDENTIFIER)):
+            parameters.append(self.vardecl())
+            if (self._peekType(TokenType.COMMA)):
+                self._eat(TokenType.COMMA)
+            else:
+                break
+
         self._eat(TokenType.RPAREN)
 
+        # TODO: make this its own class
+        func_data = (func_return_type, func_identifier, parameters)
+
         if self._peekType(TokenType.LBRACE):
-                node = self.block()
-                return UnaryNode(NodeType.FUNCDECL, node, func_data)
+            node = self.block()
+            return UnaryNode(NodeType.FUNCDECL, node, func_data)
         else:
             self._eat(TokenType.SEMICOLON)
             return ValueNode(NodeType.FUNCDECL, func_data)
@@ -174,7 +184,7 @@ class AEParser(Parser):
     # program -> ([statement, funcdecl])*
     def program(self) -> Node:
         statements = []
-        while(self._peek().token_type != TokenType.EOS):
+        while (not self._peekType(TokenType.EOS)):
             # loads of lookahead
             if (self._peekType(TokenType.IDENTIFIER) and
                 self._peekType(TokenType.IDENTIFIER, 1) and

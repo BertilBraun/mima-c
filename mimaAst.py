@@ -34,51 +34,51 @@ node_str_repr = {
 }
 
 class Node(object):
-    def __init__(self, node_type : NodeType):
-        self.node_type = node_type
+    def __init__(self, type : NodeType):
+        self.type = type
         # an ORDERED list of all children if needed
         self._children = []
         self.value = None
 
     def __repr__(self):
         if self.value:
-            result = "[{}] ({}): ".format(node_str_repr[self.node_type], self.value)
+            result = "[{}] ({}): ".format(node_str_repr[self.type], self.value)
         else:
-            result = "[{}]: ".format(node_str_repr[self.node_type])
+            result = "[{}]: ".format(node_str_repr[self.type])
         for child in self._children:
             result += '\t|'.join(('\n' + "->: " + str(child).lstrip()).splitlines(True))
         return result
 
+class ValueNode(Node):
+    def __init__(self, type, value):
+        super().__init__(type)
+        self.value = value
+
 class UnaryNode(Node):
-    def __init__(self, node_type : NodeType, node, value = None):
-        super().__init__(node_type)
+    def __init__(self, type : NodeType, node, value = None):
+        super().__init__(type)
         self.node = node
         self._children = [node]
         self.value = value
 
 class BinaryNode(Node):
-    def __init__(self, node_type : NodeType, left_node, right_node):
-        super().__init__(node_type)
+    def __init__(self, type : NodeType, left_node, right_node):
+        super().__init__(type)
         self.left_node = left_node
         self.right_node = right_node
         self._children = [left_node, right_node]
 
 class TenaryNode(Node):
-    def __init__(self, node_type : NodeType, left_node, center_node, right_node):
-        super().__init__(node_type)
+    def __init__(self, type : NodeType, left_node, center_node, right_node):
+        super().__init__(type)
         self.left_node = left_node
         self.right_node = right_node
         self.center_node = center_node
         self._children = [left_node, right_node, center_node]
 
-class ValueNode(Node):
-    def __init__(self, node_type, value):
-        super().__init__(node_type)
-        self.value = value
-
 class NaryNode(Node):
-    def __init__(self, node_type, children):
-        super().__init__(node_type)
+    def __init__(self, type, children):
+        super().__init__(type)
         self._children = children
 
 
