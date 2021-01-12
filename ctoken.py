@@ -9,16 +9,26 @@ class TokenType(Enum):
     PLUS       = 3
     MINUS      = 4
     DIVIDE     = 5
-    MULIPLY    = 6
+    MULTIPLY   = 6
     MODULO     = 7
+    IDENTIFIER = 8
+    SEMICOLON  = 9
 
     # end of token stream
-    EOS        = 8
+    EOS        = -1
+    BOS        = -2
 
 class Token(object):
     def __init__(self, token_type : TokenType, value=None):
         self.token_type = token_type
         self.value = value
+
+    def __repr__(self):
+        # TODO: add value
+        if self.value:
+            return "{}({})".format(str(self.token_type), str(self.value))
+        else:
+            return str(self.token_type)
 
 class TokenStream(object):
     """Adds functionality for eating (asserting) and peeking tokens"""
@@ -37,3 +47,13 @@ class TokenStream(object):
     def peek(self, n : int = 1):
         """Non destuctive reading of the (nth) next token"""
         pass
+
+    def __repr__(self):
+        if len(self.tokens) == 0:
+            return "[]"
+
+        ret_str = "[" + str(self.tokens[0])
+        for t in self.tokens[1:]:
+            ret_str += ", " + str(t)
+        ret_str += "]"
+        return ret_str
