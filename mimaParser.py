@@ -19,15 +19,31 @@ class Parser(object):
     def _eat(self, expected_token : TokenType) -> Token:
         return self.tokenstream.eat(expected_token)
 
-    def _peek(self)-> Token:
-        return self.tokenstream.peek()
+    def _peek(self, n : int = 0)-> Token:
+        return self.tokenstream.peek(n)
+
+    def _peekType(self, peek_type : TokenType, n : int = 0):
+        return self._peek(n).token_type == peek_type
 
 # multiple classes keeps it a bit cleaner also this is almost like parser combinators
 class AEParser(Parser):
+    def functioncall(self) -> Node:
+        token = self._eat(TokenType.IDENTIFIER)
+        self._eat(TokenType.LPAREN)
+        # TODO: parse args
+        self._eat(TokenType.RPAREN)
+        return ValueNode(NodeType.FUNCCALL, token.value)
+
     def value(self) -> Node:
         if self._peek().token_type == TokenType.INTLITERAL:
             token = self._eat(TokenType.INTLITERAL)
             return ValueNode(NodeType.INTLITERAL, token.value)
+        if self._peekType(TokenType.IDENTIFIER):
+            if self._peekType(TokenType.LPAREN, 1):
+                return self.functioncall()
+            else:
+                token = self._eat(TokenType.IDENTIFIER)
+                return ValueNode(NodeType.VAR, token.value)
         # We could also parse the empty word here to allow for 0 input
         # That would avoid weird errors
         self._eat(TokenType.LPAREN)
@@ -60,7 +76,7 @@ class AEParser(Parser):
                             NodeType.DIVIDE, n1, n2)
         return n1
 
-    def expr(self) -> Node:
+    def add(self) -> Node:
         n1 = self.factor()
 
         while (self._peek().token_type in [TokenType.PLUS, TokenType.MINUS]):
@@ -71,9 +87,97 @@ class AEParser(Parser):
                             NodeType.MINUS, n1, n2)
         return n1
 
+    def varassign(self) -> Node:
+        # while there is somehting like "a ="
+        if (self._peekType(TokenType.IDENTIFIER) and self._peekType(TokenType.EQUALS, 1)):
+            var_identifier = self._eat(TokenType.IDENTIFIER)
+            self._eat(TokenType.EQUALS)
+            return UnaryNode(NodeType.ASSIGN, self.varassign(), var_identifier)
+
+        return self.add()
+
+    def expr(self) -> Node:
+        return self.varassign()
+
+    def vardecl(self) -> Node:
+        var_type = self._eat(TokenType.IDENTIFIER)
+        var_identifier = self._eat(TokenType.IDENTIFIER)
+
+        # NOTE: this could be it's own class to make things more clear
+        var_data = (var_type, var_identifier)
+
+        # we can write multiple statements in one declaration
+        # e.g.: int a, b = 5, c;
+        statements = []
+
+        # For now the difference between declaration with and without assignment is the
+        # class of the node used
+        # ValueNode for declaration
+        # UnaryNode for declaration with assignment
+
+        # Duplicate code that could be extraced
+        if self._peek().token_type == TokenType.EQUALS:
+            self._eat(TokenType.EQUALS)
+            statements.append(UnaryNode(NodeType.DECL, self.expr(), var_data))
+        else:
+            statements.append(ValueNode(NodeType.DECL, var_data))
+
+        while (self._peek().token_type == TokenType.COMMA):
+            self._eat(TokenType.COMMA)
+            var_identifier = self._eat(TokenType.IDENTIFIER)
+            var_data = (var_type, var_identifier)
+
+            if self._peek().token_type == TokenType.EQUALS:
+                self._eat(TokenType.EQUALS)
+                statements.append(UnaryNode(NodeType.DECL, self.expr(), var_data))
+            else:
+                statements.append(ValueNode(NodeType.DECL, var_data))
+
+        # A collection of statements to be executed
+        return NaryNode(NodeType.PROGRAM, statements)
+
+    # TODO: differentiate between general statements and blockstatements
+    def statement(self) -> Node:
+        if self._peek().token_type == TokenType.IDENTIFIER:
+            if self._peek(1).token_type == TokenType.IDENTIFIER:
+                node = self.vardecl()
+            else:
+                node = self.varassign()
+        else:
+            node = self.expr()
+        self._eat(TokenType.SEMICOLON)
+        return node
+
+    def funcdecl(self) -> Node:
+        func_return_type = self._eat(TokenType.IDENTIFIER)
+        func_identifier = self._eat(TokenType.IDENTIFIER)
+        # TODO: make this its own class
+        func_data = (func_return_type, func_identifier)
+        self._eat(TokenType.LPAREN)
+        # TODO: implement parameters
+        self._eat(TokenType.RPAREN)
+
+        # TODO: implement possible function body
+        self._eat(TokenType.SEMICOLON)
+        return ValueNode(NodeType.FUNCDECL, func_data)
+
+    # program -> ([statement, funcdecl])*
+    def program(self) -> Node:
+        statements = []
+        while(self._peek().token_type != TokenType.EOS):
+            # loads of lookahead
+            if (self._peekType(TokenType.IDENTIFIER) and
+                self._peekType(TokenType.IDENTIFIER, 1) and
+                self._peekType(TokenType.LPAREN, 2)):
+                statements.append(self.funcdecl())
+            else:
+                statements.append(self.statement())
+        return NaryNode(NodeType.PROGRAM, statements)
+
+
     def parse(self) -> Node:
        self._eat(TokenType.BOS)
-       node = self.expr()
+       node = self.program()
        self._eat(TokenType.EOS)
 
        return node

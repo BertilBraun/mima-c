@@ -14,6 +14,8 @@ class TokenType(Enum):
     MODULO     = 7
     IDENTIFIER = 8
     SEMICOLON  = 9
+    EQUALS     = 10
+    COMMA      = 11
 
     # end of token stream
     EOS        = -1
@@ -55,9 +57,9 @@ class TokenStream(object):
         self.tokens = self.tokens[1:]
         return next_token
 
-    def peek(self)-> Token:
+    def peek(self, n = 0)-> Token:
         """Non destuctive reading of the (nth) next token"""
-        return Token(TokenType.EOS) if len(self.tokens) == 0 else self.tokens[0]
+        return Token(TokenType.EOS) if len(self.tokens) <= n else self.tokens[n]
 
     def __repr__(self):
         if len(self.tokens) == 0:

@@ -18,8 +18,10 @@ token_regex = {
     TokenType.DIVIDE     : r"/",
     TokenType.MULTIPLY   : r"\*",
     TokenType.MODULO     : r"%",
-    # TokenType.IDENTIFIER : r"[a-zA-Z_]?[a-zA-Z0-9_]*",
-    # TokenType.SEMICOLON  : r";"
+    TokenType.EQUALS     : r"=",
+    TokenType.COMMA      : r"\,",
+    TokenType.IDENTIFIER : r"[a-zA-Z_][a-zA-Z0-9_]*",
+    TokenType.SEMICOLON  : r";"
     # TokenType.DOUBLE      : r"[0-9]*\.[0-9]+",
     # TokenType.FLOAT     : r"[0-9]*\.[0-9]+f",
 }
@@ -54,7 +56,7 @@ class Lexer(object):
                     tokens.append(Token(t_type))
                     text = text[len(regex_match.group(0)):]
 
-                    if (t_type == TokenType.INTLITERAL):
+                    if (t_type in [TokenType.INTLITERAL, TokenType.IDENTIFIER]):
                         tokens[-1].value = regex_match.group(0)
 
                     break

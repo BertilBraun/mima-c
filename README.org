@@ -42,21 +42,31 @@
 
 * Grammar
 #+begin_src
-expr   -> expr [PLUS, MINUS] factor | factor
-factor -> factor [MULTIPLY, DIVIDE] mod | mod
-mod    -> mod [MODULO] unary | unary
-unary  -> MINUS value | value
-value  -> INTLITERAL | ( expr )
+expr         -> varassign
+;; this is ok to do recursively because it is right associative
+varassign    -> [IDENTIFIER, EQUALS] varassign | add
+add          -> (factor [PLUS, MINUS])* factor
+factor       -> (mod [MULTIPLY, DIVIDE])* mod
+mod          -> (unary [MODULO])* unary
+unary        -> MINUS value | value
+value        -> INTLITERAL | ( expr ) | functioncall | IDENTIFIER
+functioncall -> IDENTIFIER ( functionargs )
 #+end_src
 
-Eine _nicht_ linksrekursive form:
 #+begin_src
-expr   -> (factor [PLUS, MINUS])* factor
-factor -> (mod [MULTIPLY, DIVIDE])* mod
-mod    -> (unary [MODULO])* unary
-unary  -> MINUS value | value
-value  -> INTLITERAL | ( expr )
+program -> ([statement, funcdecl])*
 #+end_src
+
+#+begin_src
+funcdecl  -> IDENTIFIER IDENTIFIER '(' functionparam ')' [;, block]
+#+end_src
+
+#+begin_src
+statement    -> [vardecl, varassign, expr] ;
+vardecl      -> IDENTIFIER IDENTIFIER (= expr)? (, IDENTIFIER (= expr)?)*
+varassign    -> IDENTIFIER = expr
+#+end_src
+
 
 * Modules:
 ** Preprozessor
