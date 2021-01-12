@@ -15,6 +15,7 @@ class NodeType(Enum):
     VAR        = 9
     FUNCCALL   = 10
     FUNCDECL   = 11
+    BLOCK      = 12
 
 node_str_repr = {
     NodeType.INTLITERAL : "num",
@@ -28,7 +29,8 @@ node_str_repr = {
     NodeType.DECL       : "decl",
     NodeType.VAR        : "var",
     NodeType.FUNCCALL   : "fcall",
-    NodeType.FUNCDECL   : "fdecl"
+    NodeType.FUNCDECL   : "fdecl",
+    NodeType.BLOCK      : "block"
 }
 
 class Node(object):

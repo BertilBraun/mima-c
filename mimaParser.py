@@ -147,6 +147,14 @@ class AEParser(Parser):
         self._eat(TokenType.SEMICOLON)
         return node
 
+    def block(self) -> Node:
+        self._eat(TokenType.LBRACE)
+        block_statements = []
+        while(not self._peekType(TokenType.RBRACE)):
+            block_statements.append(self.statement())
+        self._eat(TokenType.RBRACE)
+        return NaryNode(NodeType.BLOCK, block_statements)
+
     def funcdecl(self) -> Node:
         func_return_type = self._eat(TokenType.IDENTIFIER)
         func_identifier = self._eat(TokenType.IDENTIFIER)
@@ -156,9 +164,12 @@ class AEParser(Parser):
         # TODO: implement parameters
         self._eat(TokenType.RPAREN)
 
-        # TODO: implement possible function body
-        self._eat(TokenType.SEMICOLON)
-        return ValueNode(NodeType.FUNCDECL, func_data)
+        if self._peekType(TokenType.LBRACE):
+                node = self.block()
+                return UnaryNode(NodeType.FUNCDECL, node, func_data)
+        else:
+            self._eat(TokenType.SEMICOLON)
+            return ValueNode(NodeType.FUNCDECL, func_data)
 
     # program -> ([statement, funcdecl])*
     def program(self) -> Node:
@@ -169,6 +180,8 @@ class AEParser(Parser):
                 self._peekType(TokenType.IDENTIFIER, 1) and
                 self._peekType(TokenType.LPAREN, 2)):
                 statements.append(self.funcdecl())
+            elif self._peekType(TokenType.LBRACE):
+                statements.append(self.block())
             else:
                 statements.append(self.statement())
         return NaryNode(NodeType.PROGRAM, statements)

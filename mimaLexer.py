@@ -21,7 +21,9 @@ token_regex = {
     TokenType.EQUALS     : r"=",
     TokenType.COMMA      : r"\,",
     TokenType.IDENTIFIER : r"[a-zA-Z_][a-zA-Z0-9_]*",
-    TokenType.SEMICOLON  : r";"
+    TokenType.SEMICOLON  : r";",
+    TokenType.LBRACE     : r"{",
+    TokenType.RBRACE     : r"}",
     # TokenType.DOUBLE      : r"[0-9]*\.[0-9]+",
     # TokenType.FLOAT     : r"[0-9]*\.[0-9]+f",
 }

@@ -16,6 +16,8 @@ class TokenType(Enum):
     SEMICOLON  = 9
     EQUALS     = 10
     COMMA      = 11
+    LBRACE     = 12
+    RBRACE     = 13
 
     # end of token stream
     EOS        = -1

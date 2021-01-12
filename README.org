@@ -49,22 +49,26 @@ add          -> (factor [PLUS, MINUS])* factor
 factor       -> (mod [MULTIPLY, DIVIDE])* mod
 mod          -> (unary [MODULO])* unary
 unary        -> MINUS value | value
-value        -> INTLITERAL | ( expr ) | functioncall | IDENTIFIER
-functioncall -> IDENTIFIER ( functionargs )
+value        -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER
+functioncall -> IDENTIFIER LPAREN functionargs RPAREN
 #+end_src
 
 #+begin_src
-program -> ([statement, funcdecl])*
+funcdecl  -> IDENTIFIER IDENTIFIER LPAREN functionparam RPAREN [;, block]
 #+end_src
 
-#+begin_src
-funcdecl  -> IDENTIFIER IDENTIFIER '(' functionparam ')' [;, block]
+#+begin_src block
+block     -> LBRACE (statement)* RBRACE
 #+end_src
 
 #+begin_src
 statement    -> [vardecl, varassign, expr] ;
 vardecl      -> IDENTIFIER IDENTIFIER (= expr)? (, IDENTIFIER (= expr)?)*
 varassign    -> IDENTIFIER = expr
+#+end_src
+
+#+begin_src
+program -> ([statement, funcdecl, block])*
 #+end_src
 
 
