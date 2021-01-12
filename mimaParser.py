@@ -30,7 +30,21 @@ class AEParser(Parser):
         token = self._eat(TokenType.IDENTIFIER)
 
         self._eat(TokenType.LPAREN)
+
+        arguments = []
+        # TODO: all constants should be accepted
+        while (self._peekType(TokenType.IDENTIFIER) or 
+               self._peekType(TokenType.INTLITERAL)):
+            arguments.append(self.value())
+            if (self._peekType(TokenType.COMMA)):
+                self._eat(TokenType.COMMA)
+            else:
+                break
+
         self._eat(TokenType.RPAREN)
+
+        # TODO: how should the arguments be propergated?
+        call_data = (token.value, arguments) # like this?
         return ValueNode(NodeType.FUNCCALL, token.value)
 
     def value(self) -> Node:
