@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from mimaLexer import getnext_token
 from mimaToken import Token, TokenStream, TokenType
 from mimaAst import *
 

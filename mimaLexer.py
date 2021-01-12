@@ -24,9 +24,6 @@ token_regex = {
     # TokenType.FLOAT     : r"[0-9]*\.[0-9]+f",
 }
 
-def getnext_token():
-    yield Token(TokenType.LPAREN)
-
 class Lexer(object):
     def __init__(self, text : str):
         """
