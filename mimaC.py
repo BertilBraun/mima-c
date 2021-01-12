@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+
+from mimaPreprozessor import Preprozessor
+from mimaLexer import Lexer
+from mimaParser import AEParser
+
+if __name__ == "__main__":
+    # TODO: Make this a command line utility using argparse
+    # TODO: Use standard unix pipes
+
+    input_text = ""
+    with open("src/test.c") as file:
+        input_text = file.read()
+
+    preprocessed_text = Preprozessor(input_text).getProcessedText()
+
+    lexer = Lexer(preprocessed_text)
+
+    print(lexer.tokenStream())
+
+    parser = AEParser(lexer.tokenStream())
+    ast = parser.parse()
+
+    print(ast)
+
+    # ??? compile to what?

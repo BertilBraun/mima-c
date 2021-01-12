@@ -49,6 +49,15 @@ unary  -> MINUS value | value
 value  -> INTLITERAL | ( expr )
 #+end_src
 
+Eine _nicht_ linksrekursive form:
+#+begin_src
+expr   -> (factor [PLUS, MINUS])* factor
+factor -> (mod [MULTIPLY, DIVIDE])* mod
+mod    -> (unary [MODULO])* unary
+unary  -> MINUS value | value
+value  -> INTLITERAL | ( expr )
+#+end_src
+
 * Modules:
 ** Preprozessor
 - Comments
