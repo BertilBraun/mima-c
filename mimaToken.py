@@ -30,10 +30,19 @@ class TokenType(Enum):
 
     UNDEFINED = -1
 
-class Token(object):
-    def __init__(self, token_type : TokenType, value=None):
+class Pos:
+    def __init__(self, line, char):
+        self.line = line
+        self.char = char
+
+    def __repr__(self):
+        return "({}, {})".format(self.line, self.char)
+
+class Token:
+    def __init__(self, token_type : TokenType, pos : Pos, value=None):
         self.token_type = token_type
         self.value = value
+        self.pos = pos
 
     def __repr__(self):
         # TODO: add value
@@ -42,7 +51,7 @@ class Token(object):
         else:
             return str(self.token_type)
 
-class TokenStream(object):
+class TokenStream:
     """Adds functionality for eating (asserting) and peeking tokens"""
 
     # NOTE: for now this is just a static list of tokens
@@ -57,7 +66,7 @@ class TokenStream(object):
         next_token = Token(TokenType.EOS) if len(self.tokens) == 0 else self.tokens[0]
 
         if next_token.token_type != expected_token_type:
-            print("Tried to eat: {} but has: {}".format(expected_token_type, next_token.token_type))
+            print("{}: Tried to eat: {} but has: {}".format(next_token.pos, expected_token_type, next_token.token_type))
             # @HACK: proper error handling
             print("Leftover Tokenstream:")
             print(self.tokens)

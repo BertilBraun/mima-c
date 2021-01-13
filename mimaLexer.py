@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mimaToken import TokenType, Token, TokenStream
+from mimaToken import TokenType, Token, TokenStream, Pos
 import re
 import sys
 
@@ -43,20 +43,26 @@ class Lexer(object):
 
     # TODO: count lines and characters
 
+    def calcpos(self, resttext):
+        parsedtext = self.orig_text[:self.orig_text.index(resttext)]
+        newlines = parsedtext.count('\n')
+        char = len(parsedtext.split('\n')[-1])
+        return Pos(newlines, char)
+
     def tokenStream(self) -> TokenStream:
         text = self.orig_text
-        tokens = [Token(TokenType.BOS)]
+        tokens = [Token(TokenType.BOS, Pos(0, 0))]
         while(True):
             text = text.lstrip()
             if (len(text) == 0):
                 # Done with the parsing
-                tokens.append(Token(TokenType.EOS))
+                tokens.append(Token(TokenType.EOS, Pos(-1, -1)))
                 break
             for t_type, regex in token_regex.items():
                 regex_match = re.match(r"^" + regex, text)
                 if (regex_match):
                     # TODO: parse value if applicable
-                    tokens.append(Token(t_type))
+                    tokens.append(Token(t_type, self.calcpos(text)))
                     text = text[len(regex_match.group(0)):]
 
                     if (t_type in [TokenType.INTLITERAL, TokenType.IDENTIFIER]):
