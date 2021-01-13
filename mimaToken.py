@@ -31,7 +31,7 @@ class Token(object):
     def __repr__(self):
         # TODO: add value
         if self.value:
-            return "{}({})".format(str(self.token_type), str(self.value))
+            return "{}({})".format(str(self.token_type).replace("TokenType.", ""), str(self.value))
         else:
             return str(self.token_type)
 

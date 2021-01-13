@@ -57,6 +57,8 @@ functioncall -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 funcdecl  -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | IDENTIFIER IDENTIFIER (COMMA IDENTIFIER IDENTIFIER)* RPAREN) ( SEMICOLON | block)
 #+end_src
 
+a = (b = 2);
+
 #+begin_src block
 block     -> LBRACE (statement)* RBRACE
 #+end_src
@@ -90,12 +92,16 @@ What type of parser?
 ** Compiler (future)
 - Single file (at least no linker)
 - (type system)
+
 *** Address Space:
 - Code
 - Data
 - Registers (pseudo)
 - Stack
 - Heap
+* Compiler
+** Execution environments :5_1_2:
+All objects with static storage duration shall be initialized _before_ Program startup
 
 * Brainstorming
 Option 2:

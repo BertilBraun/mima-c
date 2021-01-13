@@ -27,7 +27,7 @@ class Parser(object):
 # multiple classes keeps it a bit cleaner also this is almost like parser combinators
 class AEParser(Parser):
     def functioncall(self) -> Node:
-        token = self._eat(TokenType.IDENTIFIER)
+        identifier = self._eat(TokenType.IDENTIFIER).value
 
         self._eat(TokenType.LPAREN)
 
@@ -47,18 +47,18 @@ class AEParser(Parser):
 
         self._eat(TokenType.RPAREN)
 
-        return NaryNode(NodeType.FUNCCALL, arguments, token.value)
+        return NodeFuncCall(identifier, arguments)
 
     def value(self) -> Node:
         if self._peekType(TokenType.INTLITERAL):
             token = self._eat(TokenType.INTLITERAL)
-            return ValueNode(NodeType.INTLITERAL, token.value)
+            return NodeValue(NodeValue.Type.INTLITERAL, token.value)
         if self._peekType(TokenType.IDENTIFIER):
             if self._peekType(TokenType.LPAREN, 1):
                 return self.functioncall()
             else:
                 token = self._eat(TokenType.IDENTIFIER)
-                return ValueNode(NodeType.VAR, token.value)
+                return NodeValue(NodeVariable, token.value)
         # We could also parse the empty word here to allow for 0 input
         # That would avoid weird errors
         self._eat(TokenType.LPAREN)
@@ -69,7 +69,7 @@ class AEParser(Parser):
     def unary(self) -> Node:
         if self._peekType(TokenType.MINUS):
             self._eat(TokenType.MINUS)
-            return UnaryNode(NodeType.MINUS, self.value())
+            return NodeUnaryArithm("-", self.value())
         return self.value()
 
     def mod(self) -> Node:
@@ -77,29 +77,37 @@ class AEParser(Parser):
         while self._peekType(TokenType.MODULO):
             self._eat(TokenType.MODULO)
             n2 = self.mod()
-            n1 = BinaryNode(NodeType.MODULO, n1, n2)
+            n1 = NodeBinaryArithm("%", n1, n2)
         return n1
 
     def factor(self) -> Node:
         n1 = self.mod()
 
-        while (self._peek().token_type in [TokenType.MULTIPLY, TokenType.DIVIDE]):
+        token_to_op = {
+            TokenType.MULTIPLY : "*",
+            TokenType.DIVIDE : "/"
+        }
+
+        while self._peek().token_type in token_to_op.keys():
             token_type = self._peek().token_type
             self._eat(token_type)
             n2 = self.mod()
-            n1 = BinaryNode(NodeType.MULTIPLY if token_type == TokenType.MULTIPLY else
-                            NodeType.DIVIDE, n1, n2)
+            n1 = NodeBinaryArithm(token_to_op[token_type], n1, n2)
         return n1
 
     def add(self) -> Node:
         n1 = self.factor()
 
-        while (self._peek().token_type in [TokenType.PLUS, TokenType.MINUS]):
+        token_to_op = {
+            TokenType.PLUS : "+",
+            TokenType.MINUS : "-"
+        }
+
+        while (self._peek().token_type in token_to_op.keys()):
             token_type = self._peek().token_type
             self._eat(token_type)
             n2 = self.factor()
-            n1 = BinaryNode(NodeType.PLUS if token_type == TokenType.PLUS else
-                            NodeType.MINUS, n1, n2)
+            n1 = NodeBinaryArithm(token_to_op[token_type], n1, n2)
         return n1
 
     def varassign(self) -> Node:
@@ -107,19 +115,17 @@ class AEParser(Parser):
         if (self._peekType(TokenType.IDENTIFIER) and self._peekType(TokenType.EQUALS, 1)):
             var_identifier = self._eat(TokenType.IDENTIFIER)
             self._eat(TokenType.EQUALS)
-            return UnaryNode(NodeType.ASSIGN, self.varassign(), var_identifier)
+            return NodeVariableAssign(var_identifier, self.varassign())
 
         return self.add()
 
+    # one extra level of recursion so it's easy to extend expr
     def expr(self) -> Node:
         return self.varassign()
 
     def vardecl(self) -> Node:
         var_type = self._eat(TokenType.IDENTIFIER)
         var_identifier = self._eat(TokenType.IDENTIFIER)
-
-        # NOTE: this could be it's own class to make things more clear
-        var_data = (var_type, var_identifier)
 
         # we can write multiple statements in one declaration
         # e.g.: int a, b = 5, c;
@@ -130,26 +136,24 @@ class AEParser(Parser):
         # ValueNode for declaration
         # UnaryNode for declaration with assignment
 
+        statements.append(NodeVariableDecl(var_type, var_identifier))
+
         # Duplicate code that could be extraced
         if self._peekType(TokenType.EQUALS):
             self._eat(TokenType.EQUALS)
-            statements.append(UnaryNode(NodeType.DECL, self.expr(), var_data))
-        else:
-            statements.append(ValueNode(NodeType.DECL, var_data))
+            statements.append(NodeVariableAssign(var_identifier, self.expr()))
 
         while (self._peekType(TokenType.COMMA)):
             self._eat(TokenType.COMMA)
             var_identifier = self._eat(TokenType.IDENTIFIER)
             var_data = (var_type, var_identifier)
 
+            statements.append(NodeVariableDecl(var_type, var_identifier))
             if self._peekType(TokenType.EQUALS):
                 self._eat(TokenType.EQUALS)
-                statements.append(UnaryNode(NodeType.DECL, self.expr(), var_data))
-            else:
-                statements.append(ValueNode(NodeType.DECL, var_data))
+                statements.append(NodeVariableAssign(var_identifier, self.expr()))
 
-        # A collection of statements to be executed
-        return NaryNode(NodeType.PROGRAM, statements)
+        return NodeStatements(statements)
 
     # TODO: differentiate between general statements and blockstatements
     def statement(self) -> Node:
@@ -167,7 +171,7 @@ class AEParser(Parser):
         while(not self._peekType(TokenType.RBRACE)):
             block_statements.append(self.statement())
         self._eat(TokenType.RBRACE)
-        return NaryNode(NodeType.BLOCK, block_statements)
+        return NodeBlockStatements(block_statements)
 
     def funcdecl(self) -> Node:
         func_return_type = self._eat(TokenType.IDENTIFIER)
@@ -195,19 +199,20 @@ class AEParser(Parser):
 
         self._eat(TokenType.RPAREN)
 
-        # TODO: make this its own class
-        func_data = (func_return_type, func_identifier, parameters)
-
         # NOTE: we split a combined funciton declaration and definiiton
         # into two statements
-        statements = [ValueNode(NodeType.FUNCDECL, func_data)]
+        #
+        # 1. Function declaration
+        # There are no collisions becaues function can be declared multiple times
+        statements = [NodeFuncDecl(func_return_type, func_identifier, parameters)]
 
         if self._peekType(TokenType.LBRACE):
-            statements.append(UnaryNode(NodeType.FUNCDEF, self.block(), func_data))
+            # 2. if applicable function definition
+            statements.append(NodeFuncDef(func_return_type, func_identifier, parameters, self.block()))
         else:
             self._eat(TokenType.SEMICOLON)
 
-        return NaryNode(NodeType.PROGRAM, statements)
+        return NodeStatements(statements)
 
     # program -> ([statement, funcdecl])*
     def program(self) -> Node:
@@ -222,7 +227,7 @@ class AEParser(Parser):
                 statements.append(self.block())
             else:
                 statements.append(self.statement())
-        return NaryNode(NodeType.PROGRAM, statements)
+        return NodeProgram(statements)
 
 
     def parse(self) -> Node:

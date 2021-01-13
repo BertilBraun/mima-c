@@ -3,7 +3,7 @@
 from mimaPreprozessor import Preprozessor
 from mimaLexer import Lexer
 from mimaParser import AEParser
-from mimaInterpreter import Interpreter
+# from mimaInterpreter import Interpreter
 
 if __name__ == "__main__":
     # TODO: Make this a command line utility using argparse
@@ -27,8 +27,8 @@ if __name__ == "__main__":
 
     print()
 
-    interpreter = Interpreter(ast)
-    result = interpreter.interpret()
+    # interpreter = Interpreter(ast)
+    # result = interpreter.interpret()
 
     print("result: " + str(result))
     # ??? compile to what?

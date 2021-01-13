@@ -2,90 +2,171 @@
 
 from enum import Enum
 
-class NodeType(Enum):
-    INTLITERAL = 0
-    PLUS       = 1
-    MINUS      = 2
-    DIVIDE     = 3
-    MULTIPLY   = 4
-    MODULO     = 5
-    PROGRAM    = 6
-    DECL       = 7
-    ASSIGN     = 8
-    VAR        = 9
-    FUNCCALL   = 10
-    FUNCDECL   = 11
-    FUNCDEF    = 12
-    BLOCK      = 13
-
-node_str_repr = {
-    NodeType.INTLITERAL : "num",
-    NodeType.PLUS       : "+",
-    NodeType.MINUS      : "-",
-    NodeType.DIVIDE     : "/",
-    NodeType.MULTIPLY   : "*",
-    NodeType.MODULO     : "%",
-    NodeType.PROGRAM    : "prog",
-    NodeType.ASSIGN     : "asign",
-    NodeType.DECL       : "decl",
-    NodeType.VAR        : "var",
-    NodeType.FUNCCALL   : "fcall",
-    NodeType.FUNCDECL   : "fdecl",
-    NodeType.FUNCDEF    : "fdef",
-    NodeType.BLOCK      : "block"
-}
-
 class Node(object):
-    def __init__(self, type : NodeType, value=None, children=None):
-        self.type = type
-        # an ORDERED list of all children if needed
-        self._children = [] if children == None else children
-        self.value = value
+    # Every Node can potentially store a value and can have children for some common
+    # behavior
+
+    @property
+    def _value(self):
+        return None
+
+    @property
+    def _children(self):
+        return []
 
     def __repr__(self):
-        if self.value:
-            result = "[{}] ({}): ".format(node_str_repr[self.type], self.value)
+        if self._value:
+            result = "[{}] ({}): ".format(self._nodename, self._value)
         else:
-            result = "[{}]: ".format(node_str_repr[self.type])
+            result = "[{}]: ".format(self._nodename)
         for child in self._children:
             result += '\t|'.join(('\n' + "->: " + str(child).lstrip()).splitlines(True))
         return result
 
-class ValueNode(Node):
-    def __init__(self, type, value):
-        super().__init__(type, value)
+    @property
+    def _nodename(self):
+        return type(self).__name__.replace("Node", "")
 
-class UnaryNode(Node):
-    def __init__(self, type : NodeType, node, value = None):
-        super().__init__(type, value, [node])
+class NodeValue(Node):
+    # I left this as a single node because all values are parsed the same(ish)?
+    class Type(Enum):
+        INTLITERAL = 0
+        # FLOATLITERAL
+        # DOUBLELITERAL
+        # STRINGLITERAL
+
+    def __init__(self, type, value):
+        self.type = type
+        self.value = value
+
+    @property
+    def _value(self):
+        return (self.type, self.value)
+
+class NodeBinaryArithm(Node):
+    def __init__(self, op, left_node, right_node):
+        # This could also just be an enum
+        assert op in ["+", "-", "/", "*", "*"]
+        self.op = op
+        self.left_node = left_node
+        self.right_node = right_node
+
+    @property
+    def _value(self):
+        return self.op
+
+    @property
+    def _children(self):
+        return [self.left_node, self.right_node]
+
+    @property
+    def _nodename(self):
+        return self.op
+
+class NodeUnaryArithm(Node):
+    def __init__(self, op, node):
+        assert op in ["-"]
+
+        self.op = op
         self.node = node
 
-class BinaryNode(Node):
-    def __init__(self, type : NodeType, left_node, right_node, value=None):
-        super().__init__(type, value, [left_node, right_node])
-        self.left_node = left_node
-        self.right_node = right_node
+    @property
+    def _value(self):
+        return self.op
 
-class TenaryNode(Node):
-    def __init__(self, type : NodeType, left_node, center_node, right_node, value=None):
-        super().__init__(type, value, [left_node, right_node, center_node])
-        self.left_node = left_node
-        self.right_node = right_node
-        self.center_node = center_node
+    @property
+    def _children(self):
+        return [self.node]
 
-class NaryNode(Node):
-    def __init__(self, type, children, value=None):
-        super().__init__(type, value, children)
+    @property
+    def _nodename(self):
+        return self.op
 
-if __name__ == "__main__":
-    ast =  BinaryNode(NodeType.PLUS,
-                        ValueNode(NodeType.INTLITERAL, 0),
-                        BinaryNode(NodeType.DIVIDE,
-                                    BinaryNode(NodeType.MULTIPLY,
-                                            ValueNode(NodeType.INTLITERAL, 1),
-                                            ValueNode(NodeType.INTLITERAL, 2)
-                                            ),
-                                    ValueNode(NodeType.INTLITERAL, 2)
-                                    )
-                        )
-    print(ast)
+class NodeVariable(Node):
+    def __init__(self, identifier):
+        super().__init__(identifier)
+        self.identifier = identifier
+
+    @property
+    def _value(self):
+        return identifier
+
+class NodeVariableDecl(Node):
+    def __init__(self, type, identifier):
+        self.type = type
+        self.identifier = identifier
+
+    @property
+    def _value(self):
+        return (self.type, self.identifier)
+
+class NodeVariableAssign(Node):
+    def __init__(self, identifier, node):
+        self.identifier = identifier
+        self.node = node
+
+    @property
+    def _value(self):
+        return self.identifier
+
+    @property
+    def _children(self):
+        return [self.node]
+
+class NodeFuncCall(Node):
+    def __init__(self, identifier, arguments):
+        self.identifier = identifier
+        self.arguments = arguments
+
+    @property
+    def _value(self):
+        return self.identifier
+
+    @property
+    def _children(self):
+        return self.arguments
+
+class NodeFuncDecl(Node):
+    # I'm still not sure if the parameters shouldn't be a list of nodes
+    # The way we do it at the moment what parameters are is undefined
+    # (variable_type, identifier)
+    def __init__(self, return_type, identifier, parameters):
+        self.return_type = return_type
+        self.identifier = identifier
+        self.parameters = parameters
+
+    @property
+    def _value(self):
+        return (self.return_type, self.identifier, self.parameters)
+
+class NodeFuncDef(Node):
+    def __init__(self, return_type, identifier, parameters, block):
+        self.return_type = return_type
+        self.identifier = identifier
+        self.parameters = parameters
+
+        self.block = block
+
+    @property
+    def _value(self):
+        return (self.return_type, self.identifier, self.parameters)
+
+    @property
+    def _children(self):
+        return [self.block]
+
+class NodeStatements(Node):
+    def __init__(self, statements):
+        self.statements = statements
+
+    @property
+    def _children(self):
+        return self.statements
+
+# For dispatching
+class NodeBlockStatements(NodeStatements):
+    pass
+
+class NodeProgram(NodeStatements):
+    pass
+
