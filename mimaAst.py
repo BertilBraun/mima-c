@@ -170,3 +170,32 @@ class NodeBlockStatements(NodeStatements):
 class NodeProgram(NodeStatements):
     pass
 
+class NodeFor(Node):
+    def __init__(self, initialization, condition, loop_execution, body):
+        self.initialization = initialization
+        self.condition = condition
+        self.loop_excution = loop_execution
+        self.body = body
+
+    @property
+    def _children(self):
+        return [self.initialization, self.condition, self.loop_excution, self.body]
+
+class NodeWhile(Node):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
+
+    @property
+    def _children(self):
+        return [self.condition, self.body]
+
+class NodeIf(Node):
+    def __init__(self, condition, ifbody, elsebody):
+        self.condition = condition
+        self.ifbody = ifbody
+        self.elsebody = elsebody
+
+    @property
+    def _children(self):
+        return [self.condition, self.ifbody, self.elsebody]

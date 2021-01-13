@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import re
+
 class Preprozessor(object):
     def __init__(self, text : str):
         self.text = text;
@@ -32,5 +34,10 @@ class Preprozessor(object):
         # 5. Convert strings and characters to source character set (including escape sequence)
         #
         # 6. Adjacent string literal tokens are concatenated
+
+        # Quick and dirty replacing of comments
+
+        text = re.sub("/\*.*?\*/", "", text, re.MULTILINE)
+        text = re.sub("//.*", "", text)
 
         return text

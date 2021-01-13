@@ -2,10 +2,10 @@
 
 * TODO Stage 1 Parser & Interpreter
 ** Parser
-- [ ] while loop
-- [ ] for loop
+- [X] while loop
+- [X] for loop
+- [X] conditionals
 - [ ] tenary operator
-- [ ] conditionals
 - [ ] IO printf function
 - [ ] return
 - [ ] break
@@ -23,6 +23,11 @@
 - [ ] Break
 - [ ] Continue
 - [ ] Arrays
+
+** Sonstiges
+- [ ] Errorhandling (gegen den gepreprocessten filetext)
+- [ ] Test für parsing
+  + [ ] Automatic generation?
 
 * Sprache:
 1. Arithmetic Expressions
@@ -67,6 +72,7 @@
 * Grammar
 #+begin_src
 expr         -> varassign
+varassign    -> IDENTIFIER = expr
 ;; this is ok to do recursively because it is right associative
 varassign    -> [IDENTIFIER, EQUALS] varassign | add
 add          -> (factor [PLUS, MINUS])* factor
@@ -78,23 +84,18 @@ functioncall -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+end_src
 
 #+begin_src
-funcdecl  -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | IDENTIFIER IDENTIFIER (COMMA IDENTIFIER IDENTIFIER)* RPAREN) ( SEMICOLON | block)
-#+end_src
-
-a = (b = 2);
-
-#+begin_src block
-block     -> LBRACE (statement)* RBRACE
+blockstatement -> ((vardecl | expr)? SEMICOLON | block | for | while | if)
+for            -> FOR LPAREN (vardecl | expr) SEMICOLON expr SEMICOLON expr RPAREN blockstatement
+while          -> WHILE LPAREN expr RPAREN blockstatement
+if             -> IF LPAREN expr RPAREN blockstatement (ELSE blockstatement)?
+block          -> LBRACE (blockstatment)* RBRACE
 #+end_src
 
 #+begin_src
-statement    -> [vardecl, expr] ;
+program  -> (statement)*
+statement    -> ((vardecl | funcdecl)? SEMICOLON)
 vardecl      -> IDENTIFIER IDENTIFIER (= expr)? (, IDENTIFIER (= expr)?)*
-varassign    -> IDENTIFIER = expr
-#+end_src
-
-#+begin_src
-program -> ([statement, funcdecl, block])*
+funcdecl  -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | IDENTIFIER IDENTIFIER (COMMA IDENTIFIER IDENTIFIER)* RPAREN) ( SEMICOLON | block)
 #+end_src
 
 

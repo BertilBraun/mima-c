@@ -159,19 +159,91 @@ class AEParser(Parser):
     def statement(self) -> Node:
         if self._peekType(TokenType.IDENTIFIER) and \
            self._peekType(TokenType.IDENTIFIER, 1):
+            if self._peekType(TokenType.LPAREN, 2):
+                return self.funcdecl()
+            else:
                 node = self.vardecl()
-        else:
-            node = self.expr()
-        self._eat(TokenType.SEMICOLON)
-        return node
+                self._eat(TokenType.SEMICOLON)
+                return node
+        # unhandled error condition
+        self._eat(TokenType.UNDEFINED)
 
     def block(self) -> Node:
         self._eat(TokenType.LBRACE)
         block_statements = []
-        while(not self._peekType(TokenType.RBRACE)):
-            block_statements.append(self.statement())
+        while not self._peekType(TokenType.RBRACE):
+            block_statements.append(self.blockstatement())
         self._eat(TokenType.RBRACE)
         return NodeBlockStatements(block_statements)
+
+    def for_(self):
+
+        # Possible way to return [blockstatments] rather then dedicated ForloopNode
+        #
+        # {
+        #     initialization
+        #     while (cond) {
+        #           body
+        #           loop execution
+        #     }
+        # }
+
+        self._eat(TokenType.FOR)
+        self._eat(TokenType.LPAREN)
+
+        if self._peekType(TokenType.IDENTIFIER) and \
+           self._peekType(TokenType.IDENTIFIER, 1):
+            initialization = self.vardecl()
+        else:
+            initialization = self.expr()
+        self._eat(TokenType.SEMICOLON)
+        condition = self.expr()
+        self._eat(TokenType.SEMICOLON)
+        execution = self.expr()
+        self._eat(TokenType.RPAREN)
+
+        body = self.blockstatement()
+
+        return NodeFor(initialization, condition, execution, body)
+
+    def while_(self):
+        self._eat(TokenType.WHILE)
+        self._eat(TokenType.LPAREN)
+        condition = self.expr()
+        self._eat(TokenType.RPAREN)
+        body = self.blockstatement()
+
+        return NodeWhile(condition, body)
+
+    def if_(self):
+        self._eat(TokenType.IF)
+        self._eat(TokenType.LPAREN)
+        condition = self.expr()
+        self._eat(TokenType.RPAREN)
+        ifbody = self.blockstatement()
+        if self._peekType(TokenType.ELSE):
+            self._eat(TokenType.ELSE)
+            elsebody = self.blockstatement()
+        else:
+            elsebody = NodeStatements([])
+        return NodeIf(condition, ifbody, elsebody)
+
+    def blockstatement(self) -> Node:
+        if self._peekType(TokenType.LBRACE):
+            return self.block()
+        if self._peekType(TokenType.FOR):
+            return self.for_()
+        if self._peekType(TokenType.WHILE):
+            return self.while_()
+        if self._peekType(TokenType.IF):
+            return self.if_()
+        if self._peekType(TokenType.IDENTIFIER) and \
+           self._peekType(TokenType.IDENTIFIER, 1):
+            node = self.vardecl()
+        else:
+            node = self.expr()
+        self._eat(TokenType.SEMICOLON)
+        return node
 
     def funcdecl(self) -> Node:
         func_return_type = self._eat(TokenType.IDENTIFIER)
@@ -218,15 +290,7 @@ class AEParser(Parser):
     def program(self) -> Node:
         statements = []
         while (not self._peekType(TokenType.EOS)):
-            # loads of lookahead
-            if (self._peekType(TokenType.IDENTIFIER) and
-                self._peekType(TokenType.IDENTIFIER, 1) and
-                self._peekType(TokenType.LPAREN, 2)):
-                statements.append(self.funcdecl())
-            elif self._peekType(TokenType.LBRACE):
-                statements.append(self.block())
-            else:
-                statements.append(self.statement())
+            statements.append(self.statement())
         return NodeProgram(statements)
 
 

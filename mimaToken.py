@@ -4,24 +4,31 @@ from enum import Enum
 import sys
 
 class TokenType(Enum):
-    INTLITERAL = 0
-    LPAREN     = 1
-    RPAREN     = 2
-    PLUS       = 3
-    MINUS      = 4
-    DIVIDE     = 5
-    MULTIPLY   = 6
-    MODULO     = 7
-    IDENTIFIER = 8
-    SEMICOLON  = 9
-    EQUALS     = 10
-    COMMA      = 11
-    LBRACE     = 12
-    RBRACE     = 13
-
     # end of token stream
-    EOS        = -1
-    BOS        = -2
+    EOS        = 0
+    BOS        = 1
+
+    INTLITERAL = 2
+    LPAREN     = 3
+    RPAREN     = 4
+    PLUS       = 5
+    MINUS      = 6
+    DIVIDE     = 7
+    MULTIPLY   = 8
+    MODULO     = 9
+    IDENTIFIER = 10
+    SEMICOLON  = 11
+    EQUALS     = 12
+    COMMA      = 13
+    LBRACE     = 14
+    RBRACE     = 15
+    FOR        = 16
+    WHILE      = 17
+    IF         = 18
+    ELSE       = 19
+
+
+    UNDEFINED = -1
 
 class Token(object):
     def __init__(self, token_type : TokenType, value=None):

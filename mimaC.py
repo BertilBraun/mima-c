@@ -14,17 +14,17 @@ if __name__ == "__main__":
         input_text = file.read()
 
     preprocessed_text = Preprozessor(input_text).getProcessedText()
+    print(preprocessed_text)
 
     lexer = Lexer(preprocessed_text)
-
-    print(lexer.tokenStream())
-    print()
 
     parser = AEParser(lexer.tokenStream())
     ast = parser.parse()
 
+    print()
+    print("AST: ================================")
     print(ast)
-
+    print("======================")
     print()
 
     # interpreter = Interpreter(ast)
