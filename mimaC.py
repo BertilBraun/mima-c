@@ -17,8 +17,10 @@ if __name__ == "__main__":
     print(preprocessed_text)
 
     lexer = Lexer(preprocessed_text)
+    print("preprosessing done")
 
     tokenstream = lexer.tokenStream()
+    print("lexing done")
 
     parser = AEParser(tokenstream)
     ast = parser.parse()

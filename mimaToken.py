@@ -28,6 +28,8 @@ class TokenType(Enum):
     ELSE       = 19
     INTRINSIC  = 20
     RETURN     = 21
+    STRINGLIT  = 22
+    CHARLIT    = 23
 
     UNDEFINED = -1
 

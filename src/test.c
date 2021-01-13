@@ -11,15 +11,21 @@
 /* } */
 
 
-void a() {
+int a() {
     for (int i = 0; i = 10; i = i + 1) {
         if (i - 1) {
             1 + 1;
         } else if (i - 2)
             a;
         else
-            b;
+            b = 'c';
     }
+
+    return "this is a test";
+
+    printf();
+
+    printf(test, 1 + 2);
 
     while (True) {}
 }

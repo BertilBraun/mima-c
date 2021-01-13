@@ -10,6 +10,8 @@ Creates Tokenstream from raw input
 
 token_regex = {
     # These need to be prefix free (ordered)
+    TokenType.STRINGLIT  : r"\".*?(?<!\\)\"",
+    TokenType.CHARLIT    : r"'.*?(?<!\\)'",
     TokenType.INTLITERAL : r"[0-9]+",
     TokenType.LPAREN     : r"\(",
     TokenType.RPAREN     : r"\)",
@@ -67,8 +69,10 @@ class Lexer(object):
                     tokens.append(Token(t_type, self.calcpos(text)))
                     text = text[len(regex_match.group(0)):]
 
-                    if (t_type in [TokenType.INTLITERAL, TokenType.IDENTIFIER, TokenType.INTRINSIC]):
+                    if t_type in [TokenType.INTLITERAL, TokenType.IDENTIFIER, TokenType.INTRINSIC]:
                         tokens[-1].value = regex_match.group(0)
+                    elif t_type in [TokenType.STRINGLIT, TokenType.CHARLIT]:
+                        tokens[-1].value = regex_match.group(0)[1:-1]
 
                     break
             else:

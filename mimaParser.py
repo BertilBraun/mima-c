@@ -50,9 +50,14 @@ class AEParser(Parser):
         return NodeFuncCall(identifier, arguments)
 
     def value(self) -> Node:
-        if self._peekType(TokenType.INTLITERAL):
-            token = self._eat(TokenType.INTLITERAL)
-            return NodeValue(NodeValue.Type.INTLITERAL, token.value)
+        token_to_node_type = {
+            TokenType.INTLITERAL : NodeValue.Type.INTLITERAL,
+            TokenType.STRINGLIT  : NodeValue.Type.STRINGLIT,
+            TokenType.CHARLIT    : NodeValue.Type.CHARLIT
+        }
+        if self._peek().token_type in token_to_node_type.keys():
+            token = self._eat(self._peek().token_type)
+            return NodeValue(token_to_node_type[token.token_type], token.value)
         if self._peekType(TokenType.IDENTIFIER):
             if self._peekType(TokenType.LPAREN, 1):
                 return self.functioncall()

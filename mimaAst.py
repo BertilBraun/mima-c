@@ -31,6 +31,8 @@ class NodeValue(Node):
     # I left this as a single node because all values are parsed the same(ish)?
     class Type(Enum):
         INTLITERAL = 0
+        STRINGLIT   = 1
+        CHARLIT    = 2
         # FLOATLITERAL
         # DOUBLELITERAL
         # STRINGLITERAL
