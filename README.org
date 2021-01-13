@@ -11,8 +11,8 @@
 - [ ] break
 - [ ] continue
 - [ ] Arrays
-- [ ] Stringliterals
-- [ ] Charliterals
+- [X] Stringliterals
+- [X] Charliterals
 
 ** Interpreter
 - [ ] Scope
