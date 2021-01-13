@@ -31,21 +31,23 @@ class AEParser(Parser):
 
         self._eat(TokenType.LPAREN)
 
+        # a list of nodes
         arguments = []
-        # TODO: all constants should be accepted
-        while (self._peekType(TokenType.IDENTIFIER) or 
-               self._peekType(TokenType.INTLITERAL)):
-            arguments.append(self.value())
-            if (self._peekType(TokenType.COMMA)):
+
+        # LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
+
+        # Check for function arguments
+        if not self._peekType(TokenType.RPAREN):
+            arguments.append(self.expr())
+
+            # function arguments can be arbitrary expressions
+            while self._peekType(TokenType.COMMA):
                 self._eat(TokenType.COMMA)
-            else:
-                break
+                arguments.append(self.expr())
 
         self._eat(TokenType.RPAREN)
 
-        # TODO: how should the arguments be propergated?
-        call_data = (token.value, arguments) # like this?
-        return ValueNode(NodeType.FUNCCALL, token.value)
+        return NaryNode(NodeType.FUNCCALL, arguments, token.value)
 
     def value(self) -> Node:
         if self._peekType(TokenType.INTLITERAL):
@@ -151,11 +153,9 @@ class AEParser(Parser):
 
     # TODO: differentiate between general statements and blockstatements
     def statement(self) -> Node:
-        if self._peekType(TokenType.IDENTIFIER):
-            if self._peekType(TokenType.IDENTIFIER, 1):
+        if self._peekType(TokenType.IDENTIFIER) and \
+           self._peekType(TokenType.IDENTIFIER, 1):
                 node = self.vardecl()
-            else:
-                node = self.varassign()
         else:
             node = self.expr()
         self._eat(TokenType.SEMICOLON)
@@ -175,37 +175,39 @@ class AEParser(Parser):
 
         self._eat(TokenType.LPAREN)
 
+        # IDENTIFIER IDENTIFIER LPAREN (RPAREN | vardecl (COMMA vardecl)*)
+
         parameters = []
-        while (self._peekType(TokenType.IDENTIFIER)):
+
+        if (not self._peekType(TokenType.RPAREN)):
             var_type = self._eat(TokenType.IDENTIFIER)
             var_identifier = self._eat(TokenType.IDENTIFIER)
-
-            # NOTE: this could be it's own class to make things more clear
             var_data = (var_type, var_identifier)
+            parameters.append(var_data)
 
-            # Duplicate code that could be extraced
-            if self._peekType(TokenType.EQUALS):
-                self._eat(TokenType.EQUALS)
-                parameters.append(UnaryNode(NodeType.VAR, self.expr(), var_data))
-            else:
-                parameters.append(ValueNode(NodeType.VAR, var_data))
-
-            if (self._peekType(TokenType.COMMA)):
+            while (self._peekType(TokenType.COMMA)):
                 self._eat(TokenType.COMMA)
-            else:
-                break
+
+                var_type = self._eat(TokenType.IDENTIFIER)
+                var_identifier = self._eat(TokenType.IDENTIFIER)
+                var_data = (var_type, var_identifier)
+                parameters.append(var_data)
 
         self._eat(TokenType.RPAREN)
 
         # TODO: make this its own class
         func_data = (func_return_type, func_identifier, parameters)
 
+        # NOTE: we split a combined funciton declaration and definiiton
+        # into two statements
+        statements = [ValueNode(NodeType.FUNCDECL, func_data)]
+
         if self._peekType(TokenType.LBRACE):
-            node = self.block()
-            return UnaryNode(NodeType.FUNCDECL, node, func_data)
+            statements.append(UnaryNode(NodeType.FUNCDEF, self.block(), func_data))
         else:
             self._eat(TokenType.SEMICOLON)
-            return ValueNode(NodeType.FUNCDECL, func_data)
+
+        return NaryNode(NodeType.PROGRAM, statements)
 
     # program -> ([statement, funcdecl])*
     def program(self) -> Node:

@@ -50,11 +50,11 @@ factor       -> (mod [MULTIPLY, DIVIDE])* mod
 mod          -> (unary [MODULO])* unary
 unary        -> MINUS value | value
 value        -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER
-functioncall -> IDENTIFIER LPAREN functionargs RPAREN
+functioncall -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+end_src
 
 #+begin_src
-funcdecl  -> IDENTIFIER IDENTIFIER LPAREN functionparam RPAREN [;, block]
+funcdecl  -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | IDENTIFIER IDENTIFIER (COMMA IDENTIFIER IDENTIFIER)* RPAREN) ( SEMICOLON | block)
 #+end_src
 
 #+begin_src block
@@ -62,7 +62,7 @@ block     -> LBRACE (statement)* RBRACE
 #+end_src
 
 #+begin_src
-statement    -> [vardecl, varassign, expr] ;
+statement    -> [vardecl, expr] ;
 vardecl      -> IDENTIFIER IDENTIFIER (= expr)? (, IDENTIFIER (= expr)?)*
 varassign    -> IDENTIFIER = expr
 #+end_src

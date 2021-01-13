@@ -1,4 +1,3 @@
+int a, b = 5, c;
 
-int a(int b, int c) {
-    int b = 1 + 2;
-}
+a = 2 = 4;

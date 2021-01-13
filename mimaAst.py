@@ -15,7 +15,8 @@ class NodeType(Enum):
     VAR        = 9
     FUNCCALL   = 10
     FUNCDECL   = 11
-    BLOCK      = 12
+    FUNCDEF    = 12
+    BLOCK      = 13
 
 node_str_repr = {
     NodeType.INTLITERAL : "num",
@@ -30,15 +31,16 @@ node_str_repr = {
     NodeType.VAR        : "var",
     NodeType.FUNCCALL   : "fcall",
     NodeType.FUNCDECL   : "fdecl",
+    NodeType.FUNCDEF    : "fdef",
     NodeType.BLOCK      : "block"
 }
 
 class Node(object):
-    def __init__(self, type : NodeType):
+    def __init__(self, type : NodeType, value=None, children=None):
         self.type = type
         # an ORDERED list of all children if needed
-        self._children = []
-        self.value = None
+        self._children = [] if children == None else children
+        self.value = value
 
     def __repr__(self):
         if self.value:
@@ -51,36 +53,29 @@ class Node(object):
 
 class ValueNode(Node):
     def __init__(self, type, value):
-        super().__init__(type)
-        self.value = value
+        super().__init__(type, value)
 
 class UnaryNode(Node):
     def __init__(self, type : NodeType, node, value = None):
-        super().__init__(type)
+        super().__init__(type, value, [node])
         self.node = node
-        self._children = [node]
-        self.value = value
 
 class BinaryNode(Node):
-    def __init__(self, type : NodeType, left_node, right_node):
-        super().__init__(type)
+    def __init__(self, type : NodeType, left_node, right_node, value=None):
+        super().__init__(type, value, [left_node, right_node])
         self.left_node = left_node
         self.right_node = right_node
-        self._children = [left_node, right_node]
 
 class TenaryNode(Node):
-    def __init__(self, type : NodeType, left_node, center_node, right_node):
-        super().__init__(type)
+    def __init__(self, type : NodeType, left_node, center_node, right_node, value=None):
+        super().__init__(type, value, [left_node, right_node, center_node])
         self.left_node = left_node
         self.right_node = right_node
         self.center_node = center_node
-        self._children = [left_node, right_node, center_node]
 
 class NaryNode(Node):
-    def __init__(self, type, children):
-        super().__init__(type)
-        self._children = children
-
+    def __init__(self, type, children, value=None):
+        super().__init__(type, value, children)
 
 if __name__ == "__main__":
     ast =  BinaryNode(NodeType.PLUS,
