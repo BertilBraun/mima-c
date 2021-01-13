@@ -1,5 +1,29 @@
 #+TITLE: Readme
 
+* TODO Stage 1 Parser & Interpreter
+** Parser
+- [ ] while loop
+- [ ] for loop
+- [ ] tenary operator
+- [ ] conditionals
+- [ ] IO printf function
+- [ ] return
+- [ ] break
+- [ ] continue
+- [ ] Arrays
+
+** Interpreter
+- [ ] Scope
+- [ ] while loop
+- [ ] for loop
+- [ ] tenary operator
+- [ ] Conditionals
+- [ ] IO printf function
+- [ ] Return
+- [ ] Break
+- [ ] Continue
+- [ ] Arrays
+
 * Sprache:
 1. Arithmetic Expressions
    #+begin_example
