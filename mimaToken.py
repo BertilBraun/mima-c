@@ -26,7 +26,8 @@ class TokenType(Enum):
     WHILE      = 17
     IF         = 18
     ELSE       = 19
-
+    INTRINSIC  = 20
+    RETURN     = 21
 
     UNDEFINED = -1
 

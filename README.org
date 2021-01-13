@@ -6,11 +6,13 @@
 - [X] for loop
 - [X] conditionals
 - [ ] tenary operator
-- [ ] IO printf function
-- [ ] return
+- [X] IO printf function
+- [X] return
 - [ ] break
 - [ ] continue
 - [ ] Arrays
+- [ ] Stringliterals
+- [ ] Charliterals
 
 ** Interpreter
 - [ ] Scope
@@ -25,7 +27,7 @@
 - [ ] Arrays
 
 ** Sonstiges
-- [ ] Errorhandling (gegen den gepreprocessten filetext)
+- [X] Errorhandling (gegen den gepreprocessten filetext)
 - [ ] Test für parsing
   + [ ] Automatic generation?
 
@@ -84,11 +86,13 @@ functioncall -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+end_src
 
 #+begin_src
-blockstatement -> ((vardecl | expr)? SEMICOLON | block | for | while | if)
+blockstatement -> ((vardecl | expr)? SEMICOLON | block | for | while | if | return | instrinsic)
 for            -> FOR LPAREN (vardecl | expr) SEMICOLON expr SEMICOLON expr RPAREN blockstatement
 while          -> WHILE LPAREN expr RPAREN blockstatement
 if             -> IF LPAREN expr RPAREN blockstatement (ELSE blockstatement)?
 block          -> LBRACE (blockstatment)* RBRACE
+return         -> RETURN (expr)? SEMICOLON
+intrinsic      -> INTRINSIC LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+end_src
 
 #+begin_src

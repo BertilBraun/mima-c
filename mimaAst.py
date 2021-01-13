@@ -199,3 +199,24 @@ class NodeIf(Node):
     @property
     def _children(self):
         return [self.condition, self.ifbody, self.elsebody]
+
+class NodeReturn(Node):
+    def __init__(self, return_statement):
+        self.return_statement = return_statement
+
+    @property
+    def _children(self):
+        return [self.return_statement]
+
+class NodeIntrinsic(Node):
+    def __init__(self, parameters, type):
+        self.parameters = parameters
+        self.type = type
+
+    @property
+    def _value(self):
+        return self.type
+
+    @property
+    def _children(self):
+        return self.parameters

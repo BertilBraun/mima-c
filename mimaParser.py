@@ -228,7 +228,28 @@ class AEParser(Parser):
             elsebody = NodeStatements([])
         return NodeIf(condition, ifbody, elsebody)
 
+    def return_(self) -> Node:
+        self._eat(TokenType.RETURN)
+        n1 = NodeReturn(self.expr())
+        return n1
+
+    def intrinsic(self) -> Node:
+        token = self._eat(TokenType.INTRINSIC)
+        self._eat(TokenType.LPAREN)
+
+        parameters = []
+        if not self._peekType(TokenType.RPAREN):
+            parameters.append(self.expr())
+            while self._peekType(TokenType.COMMA):
+                self._eat(TokenType.COMMA)
+                parameters.append(self.expr())
+        self._eat(TokenType.RPAREN)
+
+        return NodeIntrinsic(parameters, token.value)
+
     def blockstatement(self) -> Node:
+        # NOTE: ONLY RETURN DIRECTLY IF NO SEMICOLON IS NEEDED
+
         if self._peekType(TokenType.LBRACE):
             return self.block()
         if self._peekType(TokenType.FOR):
@@ -237,7 +258,12 @@ class AEParser(Parser):
             return self.while_()
         if self._peekType(TokenType.IF):
             return self.if_()
-        if self._peekType(TokenType.IDENTIFIER) and \
+
+        if self._peekType(TokenType.RETURN):
+            node = self.return_()
+        elif self._peekType(TokenType.INTRINSIC):
+            node = self.intrinsic()
+        elif self._peekType(TokenType.IDENTIFIER) and \
            self._peekType(TokenType.IDENTIFIER, 1):
             node = self.vardecl()
         else:

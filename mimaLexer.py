@@ -24,6 +24,8 @@ token_regex = {
     TokenType.FOR        : r"for",
     TokenType.IF         : r"if",
     TokenType.ELSE       : r"else",
+    TokenType.INTRINSIC  : r"printf",
+    TokenType.RETURN     : r"return",
     TokenType.IDENTIFIER : r"[a-zA-Z_][a-zA-Z0-9_]*",
     TokenType.SEMICOLON  : r";",
     TokenType.LBRACE     : r"{",
@@ -65,7 +67,7 @@ class Lexer(object):
                     tokens.append(Token(t_type, self.calcpos(text)))
                     text = text[len(regex_match.group(0)):]
 
-                    if (t_type in [TokenType.INTLITERAL, TokenType.IDENTIFIER]):
+                    if (t_type in [TokenType.INTLITERAL, TokenType.IDENTIFIER, TokenType.INTRINSIC]):
                         tokens[-1].value = regex_match.group(0)
 
                     break
