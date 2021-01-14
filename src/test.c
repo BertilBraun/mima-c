@@ -10,28 +10,17 @@
 /*     b = c = 2 + 1 - 2; */
 /* } */
 
+// /* int fac(int n) { */
+// /*     if (n == 1) return 1; */
+// /*     return n * fac(n - 1); */
+// /* } */
+
 // TODO: Make this the first goal,
 //       to be able to properly run this function
-// int fac(int n) {
-//     if (n == 1) return 1;
-//     return n * fac(n - 1);
-// }
 
-int a() {
-    for (int i = 0; i = 10; i = i + 1) {
-        if (i - 1) {
-            1 + 1;
-        } else if (i - 2)
-            a;
-        else
-            b = 'c';
-    }
-
-    return "this is a test";
-
-    printf();
-
-    printf(test, 1 + 2);
-
-    while (True) {}
+int a = 0;
+void b(int c) {
+    a = c;
 }
+
+int c = b(5);

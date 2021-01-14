@@ -26,14 +26,16 @@ class Functionparam(Signature):
         return self.type
 
 class FuncSign(Signature):
-    def __init__(self, signature, parameters : (Functionparam)):
+    def __init__(self, signature, parameters : [Functionparam]):
         self.signature = signature
-        self.parameters = parameters
+        self.parameters = tuple(parameters)
 
     @property
     def _data(self):
         # make sure what is returned here is hashable
-        return (self.signature, self.parameters)
+        # TODO: funcion signature should be the types of the parameters
+        # but without a type engine these cannot be deduced during function call
+        return (self.signature, len(self.parameters))
 
 class VariableSign(Signature):
     def __init__(self, signature : str):

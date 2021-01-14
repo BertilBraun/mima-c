@@ -12,7 +12,7 @@ class Scope:
             return self._translation[symbol]
 
         if self._parent_scope:
-            return self._parent_scope.translat(symbol)
+            return self._parent_scope.translate(symbol)
 
         # TODO Error? Variable not defined?
         return None
@@ -27,7 +27,7 @@ class Scope:
 
     def hasSymbol(self, symbol):
         """Returns true if THIS scope knows the symbol"""
-        return symbol in self._stranslation
+        return symbol in self._translation
 
     def __repr__(self):
         return "Scope:\n" + "\n".join(["({}: {})".format(k, v) for k, v in self._translation.items()])

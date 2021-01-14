@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 from mimaAst import *
-from interpreter.mimaSymbols import FuncSign, VariableSign
+from interpreter.mimaSymbols import FuncSign, VariableSign, Functionparam
 from interpreter.mimaScope import Scope
 import interpreter.mimaStrings as mstrings
 from interpreter.mimaVariable import Variable
+from interpreter.mimaFunction import Function
 import sys
 
 class Interpreter(object):
@@ -33,11 +34,17 @@ class Interpreter(object):
     def walkNodeBinaryArithm(self, node : NodeBinaryArithm, scope : Scope):
         # TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
         op_to_func = {
-            "+" : lambda x, y: x + y,
-            "-" : lambda x, y: x - y,
-            "/" : lambda x, y: x / y,
-            "*" : lambda x, y: x * y,
-            "%" : lambda x, y: x % y
+            "+"  : lambda x, y: x + y,
+            "-"  : lambda x, y: x - y,
+            "/"  : lambda x, y: x / y,
+            "*"  : lambda x, y: x * y,
+            "%"  : lambda x, y: x % y,
+            ">"  : lambda x, y: x > y,
+            "<"  : lambda x, y: x < y,
+            "<=" : lambda x, y: x <= y,
+            ">=" : lambda x, y: x >= y,
+            "==" : lambda x, y: x == y,
+            "!=" : lambda x, y: x != y,
         }
         return op_to_func[node.op](self.walkNode(node.left_node, scope), \
                                    self.walkNode(node.right_node, scope))
@@ -62,6 +69,45 @@ class Interpreter(object):
         var.value = self.walkNode(node.node, scope)
         # TODO: check type ? or just in the compiler?
 
+    def walkNodeFuncDecl(self, node : NodeFuncDecl, scope : Scope):
+        func = Function(node.return_type, None, None)
+        # NOTE: This is jank ?MAYBE? just use the the Functionparam class of the interpreter?
+        # Also note that the variable identifier is not used to build the signature it's just add. info.
+        func_sign = FuncSign(node.identifier, [Functionparam(p[0], p[1]) for p in node.parameters])
+        scope.addSymbol(func_sign, func)
+
+    def walkNodeFuncDef(self, node : NodeFuncDef, scope : Scope):
+        func_sign = FuncSign(node.identifier, [Functionparam(p[0], p[1]) for p in node.parameters])
+        func : Function = scope.translate(func_sign)
+        if not func:
+            self._raise(node, scope, "Function not declared")
+        func.body = node.block
+        func.parameters = node.parameters
+
+    def walkNodeFuncCall(self, node : NodeFuncCall, scope : Scope):
+        # @HACK: passing node.arguments instead of proper parameter list because we know only the length
+        # will be used to generate the function signature
+        func_sign = FuncSign(node.identifier, node.arguments)
+        func : Function = scope.translate(func_sign)
+        if not func:
+            self._raise(node, scope, "Function not declared")
+
+        copy_scope = Scope(scope)
+        for arg_expr, var in zip(node.arguments, func.parameters):
+            # TODO: typecheck type (var[0]) agains type of var_value
+            var_sign = VariableSign(var[1])
+            var_value = Variable(var[0], self.walkNode(arg_expr, scope))
+            copy_scope.addSymbol(var_sign, var_value)
+        # Don't dispatch because we need to set the scope
+        self.walkNodeBlock(func.body, scope, copy_scope)
+
+    # copy scope to allow function call to insert parameter variables
+    def walkNodeBlock(self, node : NodeBlockStatements, scope : Scope, copy_scope : Scope = None):
+        block_scope = copy_scope if copy_scope else Scope(scope)
+
+        for statement in node.statements:
+            self.walkNode(statement, block_scope)
+
     def walkNodeStatements(self, node : NodeStatements, scope : Scope):
         for s in node.statements:
             self.walkNode(s, scope)
@@ -73,6 +119,9 @@ class Interpreter(object):
             NodeVariable : self.walkNodeVariable,
             NodeVariableDecl : self.walkNodeVariableDecl,
             NodeVariableAssign : self.walkNodeVariableAssign,
+            NodeFuncDef : self.walkNodeFuncDef,
+            NodeFuncCall : self.walkNodeFuncCall,
+            NodeFuncDecl : self.walkNodeFuncDecl,
             NodeStatements : self.walkNodeStatements,
             NodeProgram : self.walkNodeStatements,
         }
