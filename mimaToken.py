@@ -30,6 +30,12 @@ class TokenType(Enum):
     RETURN     = 21
     STRINGLIT  = 22
     CHARLIT    = 23
+    LT         = 24
+    GT         = 25
+    GEQ        = 26
+    LEQ        = 27
+    EQUAL      = 28
+    NEQ        = 29
 
     UNDEFINED = -1
 

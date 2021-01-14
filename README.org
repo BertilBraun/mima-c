@@ -11,11 +11,12 @@
 - [ ] break
 - [ ] continue
 - [ ] Arrays
+- [X] Relations
 - [X] Stringliterals
 - [X] Charliterals
 
 ** Interpreter
-- [ ] Scope
+- [X] Scope
 - [ ] while loop
 - [ ] for loop
 - [ ] tenary operator
@@ -73,16 +74,16 @@
 
 * Grammar
 #+begin_src
-expr         -> varassign
-varassign    -> IDENTIFIER = expr
+expr           -> assignment
 ;; this is ok to do recursively because it is right associative
-varassign    -> [IDENTIFIER, EQUALS] varassign | add
-add          -> (factor [PLUS, MINUS])* factor
-factor       -> (mod [MULTIPLY, DIVIDE])* mod
-mod          -> (unary [MODULO])* unary
-unary        -> MINUS value | value
-value        -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER
-functioncall -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
+assignment     -> IDENTIFIER EQUALS assigmnet | p7
+p7             -> (p6 (EQUAL | NEQ))* p6
+p6             -> (p4 (LT | GT | GEQ | LEQ)* p4)
+p4             -> (p3 (PLUS | MINUS))* p3
+p3             -> (unary (MULTIPLY | DIVIDE | MOD))* unary
+unary          -> MINUS value | value
+value          -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER
+functioncall   -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+end_src
 
 #+begin_src
@@ -96,10 +97,10 @@ intrinsic      -> INTRINSIC LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+end_src
 
 #+begin_src
-program  -> (statement)*
-statement    -> ((vardecl | funcdecl)? SEMICOLON)
-vardecl      -> IDENTIFIER IDENTIFIER (= expr)? (, IDENTIFIER (= expr)?)*
-funcdecl  -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | IDENTIFIER IDENTIFIER (COMMA IDENTIFIER IDENTIFIER)* RPAREN) ( SEMICOLON | block)
+program        -> (statement)*
+statement      -> ((vardecl | funcdecl)? SEMICOLON)
+vardecl        -> IDENTIFIER IDENTIFIER (= expr)? (, IDENTIFIER (= expr)?)*
+funcdecl       -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | IDENTIFIER IDENTIFIER (COMMA IDENTIFIER IDENTIFIER)* RPAREN) ( SEMICOLON | block)
 #+end_src
 
 

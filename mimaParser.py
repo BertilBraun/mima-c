@@ -77,31 +77,24 @@ class AEParser(Parser):
             return NodeUnaryArithm("-", self.value())
         return self.value()
 
-    def mod(self) -> Node:
+    def p3(self) -> Node:
         n1 = self.unary()
-        while self._peekType(TokenType.MODULO):
-            self._eat(TokenType.MODULO)
-            n2 = self.mod()
-            n1 = NodeBinaryArithm("%", n1, n2)
-        return n1
-
-    def factor(self) -> Node:
-        n1 = self.mod()
 
         token_to_op = {
             TokenType.MULTIPLY : "*",
-            TokenType.DIVIDE : "/"
+            TokenType.DIVIDE : "/",
+            TokenType.MODULO   : "%"
         }
 
         while self._peek().token_type in token_to_op.keys():
             token_type = self._peek().token_type
             self._eat(token_type)
-            n2 = self.mod()
+            n2 = self.unary()
             n1 = NodeBinaryArithm(token_to_op[token_type], n1, n2)
         return n1
 
-    def add(self) -> Node:
-        n1 = self.factor()
+    def p4(self) -> Node:
+        n1 = self.p3()
 
         token_to_op = {
             TokenType.PLUS : "+",
@@ -111,22 +104,56 @@ class AEParser(Parser):
         while (self._peek().token_type in token_to_op.keys()):
             token_type = self._peek().token_type
             self._eat(token_type)
-            n2 = self.factor()
+            n2 = self.p3()
             n1 = NodeBinaryArithm(token_to_op[token_type], n1, n2)
         return n1
 
-    def varassign(self) -> Node:
+    def p6(self) -> Node:
+        n1 = self.p4()
+
+        token_to_op = {
+            TokenType.LT  : "<",
+            TokenType.GT  : ">",
+            TokenType.GEQ : ">=",
+            TokenType.LEQ : "<="
+        }
+
+        while (self._peek().token_type in token_to_op.keys()):
+            token_type = self._peek().token_type
+            self._eat(token_type)
+            n2 = self.p4()
+            n1 = NodeBinaryArithm(token_to_op[token_type], n1, n2)
+
+        return n1
+
+    def p7(self):
+        n1 = self.p6()
+
+        token_to_op = {
+            TokenType.EQUAL : "==",
+            TokenType.NEQ   : "!="
+        }
+
+        while (self._peek().token_type in token_to_op.keys()):
+            token_type = self._peek().token_type
+            self._eat(token_type)
+            n2 = self.p6()
+            n1 = NodeBinaryArithm(token_to_op[token_type], n1, n2)
+
+        return n1
+
+    def assignment(self) -> Node:
         # while there is somehting like "a ="
         if (self._peekType(TokenType.IDENTIFIER) and self._peekType(TokenType.EQUALS, 1)):
             var_identifier = self._eat(TokenType.IDENTIFIER).value
             self._eat(TokenType.EQUALS)
-            return NodeVariableAssign(var_identifier, self.varassign())
+            return NodeVariableAssign(var_identifier, self.assignment())
 
-        return self.add()
+        return self.p7()
 
     # one extra level of recursion so it's easy to extend expr
     def expr(self) -> Node:
-        return self.varassign()
+        return self.assignment()
 
     def vardecl(self) -> Node:
         var_type = self._eat(TokenType.IDENTIFIER).value
