@@ -5,6 +5,8 @@ from mimaLexer import Lexer
 from mimaParser import AEParser
 from interpreter.mimaInterpreter import Interpreter
 
+# This import will run all defined Tests
+# TODO: remove this import for faster Compile time and production
 import mimaTest
 
 if __name__ == "__main__":
