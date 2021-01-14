@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import sys
+
 from mimaPreprozessor import Preprozessor
 from mimaLexer import Lexer
 from mimaParser import AEParser
@@ -38,5 +40,4 @@ if __name__ == "__main__":
     interpreter = Interpreter(ast)
     result = interpreter.interpret()
 
-    print("result: " + str(result))
-    # ??? compile to what?
+    sys.exit(result)

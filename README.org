@@ -17,12 +17,12 @@
 
 ** Interpreter
 - [X] Scope
-- [ ] while loop
-- [ ] for loop
+- [X] while loop
+- [X] for loop
 - [ ] tenary operator
-- [ ] Conditionals
-- [ ] IO printf function
-- [ ] Return
+- [X] Conditionals
+- [X] IO printf function
+- [X] Return
 - [ ] Break
 - [ ] Continue
 - [ ] Arrays
@@ -30,8 +30,8 @@
 
 ** Sonstiges
 - [X] Errorhandling (gegen den gepreprocessten filetext)
-- [ ] Test für parsing
-  + [ ] Automatic generation?
+- [X] Test für parsing
+  + [X] Automatic generation?
 
 * Sprache:
 1. Arithmetic Expressions

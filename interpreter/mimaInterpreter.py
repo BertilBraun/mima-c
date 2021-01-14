@@ -159,74 +159,7 @@ class Interpreter(object):
 
         return method(self, node, scope)
 
-        # node_dispatch = {
-        #     NodeValue          : self.walkNodeValue,
-        #     NodeBinaryArithm   : self.walkNodeBinaryArithm,
-        #     NodeVariable       : self.walkNodeVariable,
-        #     NodeVariableDecl   : self.walkNodeVariableDecl,
-        #     NodeVariableAssign : self.walkNodeVariableAssign,
-        #     NodeFuncDef        : self.walkNodeFuncDef,
-        #     NodeFuncCall       : self.walkNodeFuncCall,
-        #     NodeFuncDecl       : self.walkNodeFuncDecl,
-        #     NodeStatements     : self.walkNodeStatements,
-        #     NodeProgram        : self.walkNodeStatements,
-        #     NodeReturn         : self.walkNodeReturn,
-        #     NodeIf             : self.walkNodeIf,
-        #     NodeFor            : self.walkNodeFor,
-        #     NodeWhile          : self.walkNodeWhile,
-        #     NodeBlockStatements : self.walkNodeBlock,
-        #     NodeIntrinsic       : self.walkNodeIntrinsic,
-        # }
-        # return node_dispatch[type(node)](node, scope)
-
     def interpret(self):
-        ret_val = self.walkNode(self.ast, self.global_scope)
-        print(self.global_scope)
-        return ret_val
-
-    # def walkUnaryNode(self, node : UnaryNode) -> int:
-    #     if node.type == NodeType.MINUS:
-    #         return - self.walkNode(node.node)
-    #     if node.type == NodeType.DECL:
-    #         self._variable_types[node.value[1]] = node.value[0]
-    #         self._variables[node.value[1]] = self.walkNode(node.node)
-    #         return self._variables[node.value[1]] # TODO: correct?
-    #     if node.type == NodeType.ASSIGN:
-    #         self._variables[node.value] = self.walkNode(node.node)
-    #         return self._variables[node.value[1]] # TODO: correct?
-    #     if node.type == NodeType.FUNCDECL:
-    #         # node.value = func_data = (func_return_type, func_identifier, parameters)
-    #         # TODO: parameters
-    #         self._functions[node.value[1]] = lambda: self.walkNode(node.node)
-    #          # TODO: what should be returned?
-
-    # def walkBinaryNode(self, node : BinaryNode) -> int:
-    #     if node.type == NodeType.PLUS:
-    #         return self.walkNode(node.left_node) + self.walkNode(node.right_node)
-    #     if node.type == NodeType.MINUS:
-    #         return self.walkNode(node.left_node) - self.walkNode(node.right_node)
-    #     if node.type == NodeType.MULTIPLY:
-    #         return self.walkNode(node.left_node) * self.walkNode(node.right_node)
-    #     if node.type == NodeType.DIVIDE:
-    #         return self.walkNode(node.left_node) / self.walkNode(node.right_node)
-    #     if node.type == NodeType.MODULO:
-    #         return self.walkNode(node.left_node) % self.walkNode(node.right_node)
-
-    # def walkTenaryNode(self, node : TenaryNode) -> int:
-    #     pass
-
-    # def walkNaryNode(self, node : NaryNode) -> int:
-    #     if node.type == NodeType.PROGRAM:
-    #         # TODO: should this be called in extra scope?
-    #         ret = None
-    #         for statement in node._children:
-    #             ret = self.walkNode(statement)
-    #         return ret
-    #          # TODO: what should be returned?
-    #     if node.type == NodeType.BLOCK:
-    #         # TODO: should be called in extra scope
-    #         ret = None
-    #         for statement in node._children:
-    #             ret = self.walkNode(statement)
-    #         return ret
-    #          # TODO: what should be returned?
+        self.walkNode(self.ast, self.global_scope)
+        main_call_node = NodeFuncCall("main", [])
+        return self.walkNode(main_call_node, self.global_scope)
