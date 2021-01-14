@@ -32,6 +32,7 @@
 - [X] Errorhandling (gegen den gepreprocessten filetext)
 - [X] Test für parsing
   + [X] Automatic generation?
+- [X] Argparse
 
 * Sprache:
 1. Arithmetic Expressions
