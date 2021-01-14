@@ -36,6 +36,8 @@ class TokenType(Enum):
     LEQ        = 27
     EQUAL      = 28
     NEQ        = 29
+    BREAK      = 30
+    CONTINUE   = 31
 
     UNDEFINED = -1
 

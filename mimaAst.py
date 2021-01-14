@@ -201,6 +201,12 @@ class NodeIf(Node):
     def _children(self):
         return [self.condition, self.ifbody, self.elsebody]
 
+class NodeBreak(Node):
+    pass
+
+class NodeContinue(Node):
+    pass
+
 class NodeReturn(Node):
     def __init__(self, return_statement):
         self.return_statement = return_statement

@@ -8,8 +8,8 @@
 - [ ] tenary operator
 - [X] IO printf function
 - [X] return
-- [ ] break
-- [ ] continue
+- [X] break
+- [X] continue
 - [ ] Arrays
 - [X] Relations
 - [X] Stringliterals
@@ -23,8 +23,8 @@
 - [X] Conditionals
 - [X] IO printf function
 - [X] Return
-- [ ] Break
-- [ ] Continue
+- [X] Break
+- [X] Continue
 - [ ] Arrays
 - [X] Functions
 
@@ -88,12 +88,14 @@ functioncall   -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+end_src
 
 #+begin_src
-blockstatement -> ((vardecl | expr)? SEMICOLON | block | for | while | if | return | instrinsic)
+blockstatement -> ((vardecl | expr)? SEMICOLON | block | for | while | if | return | break | continue | instrinsic)
 for            -> FOR LPAREN (vardecl | expr) SEMICOLON expr SEMICOLON expr RPAREN blockstatement
 while          -> WHILE LPAREN expr RPAREN blockstatement
 if             -> IF LPAREN expr RPAREN blockstatement (ELSE blockstatement)?
 block          -> LBRACE (blockstatment)* RBRACE
 return         -> RETURN (expr)? SEMICOLON
+break          -> BREAK SEMICOLON
+continue       -> CONTINUE SEMICOLON
 intrinsic      -> INTRINSIC LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+end_src
 

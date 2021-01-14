@@ -21,7 +21,6 @@ int fibbonachi(int n) {
         int c = b;
         b = a + b;
         a = c;
-        printf("{}", a);
     }
     return a;
 }
@@ -31,6 +30,13 @@ int fibbonachi(int n) {
 
 
 int main() {
-    fibbonachi(10);
-    return 1;
+    for (int i = 0; i < 20; i = i + 1) {
+        if (i % 2 == 0)
+            continue;
+        if (i == 17)
+            break;
+        printf("{}", fibbonachi(i));
+    }
+    printf("Done");
+    return 0;
 }

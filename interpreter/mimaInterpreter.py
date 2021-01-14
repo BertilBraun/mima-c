@@ -8,6 +8,12 @@ from interpreter.mimaVariable import Variable
 from interpreter.mimaFunction import Function
 import sys
 
+class Break(Exception):
+    pass
+
+class Continue(Exception):
+    pass
+
 class Return(Exception):
     def __init__(self, ret_value):
         self.ret_value = ret_value
@@ -118,13 +124,25 @@ class Interpreter(object):
 
     def walkNodeWhile(self, node : NodeWhile, scope : Scope):
         while self.walkNode(node.condition, scope):
-            self.walkNode(node.body, scope)
+            try:
+                self.walkNode(node.body, scope)
+            except Break as b:
+                break
+            except Continue as c:
+                pass
 
     def walkNodeFor(self, node : NodeFor, scope : Scope):
-        self.walkNode(node.initialization, scope)
-        while self.walkNode(node.condition, scope):
-            self.walkNode(node.body, scope)
-            self.walkNode(node.loop_excution, scope)
+        block_scope = Scope(scope)
+
+        self.walkNode(node.initialization, block_scope)
+        while self.walkNode(node.condition, block_scope):
+            try:
+                self.walkNode(node.body, block_scope)
+            except Break as b:
+                break
+            except Continue as c:
+                pass
+            self.walkNode(node.loop_excution, block_scope)
 
     # copy scope to allow function call to insert parameter variables
     def walkNodeBlockStatements(self, node : NodeBlockStatements, scope : Scope, copy_scope : Scope = None):
@@ -136,6 +154,12 @@ class Interpreter(object):
     def walkNodeStatements(self, node : NodeStatements, scope : Scope):
         for s in node.statements:
             self.walkNode(s, scope)
+
+    def walkNodeBreak(self, node : NodeBreak, scope : Scope):
+        raise Break();
+
+    def walkNodeContinue(self, node : NodeContinue, scope : Scope):
+        raise Continue();
 
     def walkNodeReturn(self, node : NodeReturn, scope : Scope):
         raise Return(self.walkNode(node.return_statement, scope));

@@ -34,6 +34,8 @@ token_regex = {
     TokenType.ELSE       : r"else",
     TokenType.INTRINSIC  : r"printf",
     TokenType.RETURN     : r"return",
+    TokenType.BREAK      : r"break",
+    TokenType.CONTINUE   : r"continue",
     TokenType.IDENTIFIER : r"[a-zA-Z_][a-zA-Z0-9_]*",
     TokenType.SEMICOLON  : r";",
     TokenType.LBRACE     : r"{",

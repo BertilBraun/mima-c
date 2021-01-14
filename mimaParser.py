@@ -259,6 +259,14 @@ class AEParser(Parser):
         else:
             elsebody = NodeStatements([])
         return NodeIf(condition, ifbody, elsebody)
+    
+    def break_(self) -> Node:
+        self._eat(TokenType.BREAK)
+        return NodeBreak()
+
+    def continue_(self) -> Node:
+        self._eat(TokenType.CONTINUE)
+        return NodeContinue()
 
     def return_(self) -> Node:
         self._eat(TokenType.RETURN)
@@ -291,7 +299,11 @@ class AEParser(Parser):
         if self._peekType(TokenType.IF):
             return self.if_()
 
-        if self._peekType(TokenType.RETURN):
+        if self._peekType(TokenType.BREAK):
+            node = self.break_()
+        elif self._peekType(TokenType.CONTINUE):
+            node = self.continue_()
+        elif self._peekType(TokenType.RETURN):
             node = self.return_()
         elif self._peekType(TokenType.INTRINSIC):
             node = self.intrinsic()
