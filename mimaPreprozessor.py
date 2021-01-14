@@ -22,7 +22,7 @@ class Preprozessor(object):
         text = text.replace("\\\n", "")
         # and the fill will end with a newline
         if text[-1] != '\n':
-            text.append('\n')
+            text += '\n'
         #
         # 3. Decompose text into ?preprocessing tokens? and whitespace characters (including comments)
         #

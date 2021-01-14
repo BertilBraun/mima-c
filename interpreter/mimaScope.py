@@ -8,18 +8,19 @@ class Scope:
         self._translation = {}
 
     def translate(self, symbol):
-        if symbol in self._translation:
+        if self.hasSymbol(symbol):
             return self._translation[symbol]
 
         if self._parent_scope:
             return self._parent_scope.translat(symbol)
 
+        # TODO Error? Variable not defined?
         return None
 
     def addSymbol(self, symbol, value) -> bool:
         # No redeclaration of variables IN THIS scope
         # shadowing variables is allowed
-        if symbol in self._translation:
+        if self.hasSymbol(symbol):
             return False
         self._translation[symbol] = value
         return True

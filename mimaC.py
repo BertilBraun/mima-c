@@ -5,12 +5,14 @@ from mimaLexer import Lexer
 from mimaParser import AEParser
 from interpreter.mimaInterpreter import Interpreter
 
+import mimaTest
+
 if __name__ == "__main__":
     # TODO: Make this a command line utility using argparse
     # TODO: Use standard unix pipes
 
     input_text = ""
-    with open("src/test2.c") as file:
+    with open("src/test.c") as file:
         input_text = file.read()
 
     preprocessed_text = Preprozessor(input_text).getProcessedText()
