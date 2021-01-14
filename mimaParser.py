@@ -63,7 +63,7 @@ class AEParser(Parser):
                 return self.functioncall()
             else:
                 token = self._eat(TokenType.IDENTIFIER)
-                return NodeValue(NodeVariable, token.value)
+                return NodeVariable(token.value)
         # We could also parse the empty word here to allow for 0 input
         # That would avoid weird errors
         self._eat(TokenType.LPAREN)
@@ -118,7 +118,7 @@ class AEParser(Parser):
     def varassign(self) -> Node:
         # while there is somehting like "a ="
         if (self._peekType(TokenType.IDENTIFIER) and self._peekType(TokenType.EQUALS, 1)):
-            var_identifier = self._eat(TokenType.IDENTIFIER)
+            var_identifier = self._eat(TokenType.IDENTIFIER).value
             self._eat(TokenType.EQUALS)
             return NodeVariableAssign(var_identifier, self.varassign())
 
@@ -129,8 +129,8 @@ class AEParser(Parser):
         return self.varassign()
 
     def vardecl(self) -> Node:
-        var_type = self._eat(TokenType.IDENTIFIER)
-        var_identifier = self._eat(TokenType.IDENTIFIER)
+        var_type = self._eat(TokenType.IDENTIFIER).value
+        var_identifier = self._eat(TokenType.IDENTIFIER).value
 
         # we can write multiple statements in one declaration
         # e.g.: int a, b = 5, c;
@@ -150,7 +150,7 @@ class AEParser(Parser):
 
         while (self._peekType(TokenType.COMMA)):
             self._eat(TokenType.COMMA)
-            var_identifier = self._eat(TokenType.IDENTIFIER)
+            var_identifier = self._eat(TokenType.IDENTIFIER).value
             var_data = (var_type, var_identifier)
 
             statements.append(NodeVariableDecl(var_type, var_identifier))
@@ -277,8 +277,8 @@ class AEParser(Parser):
         return node
 
     def funcdecl(self) -> Node:
-        func_return_type = self._eat(TokenType.IDENTIFIER)
-        func_identifier = self._eat(TokenType.IDENTIFIER)
+        func_return_type = self._eat(TokenType.IDENTIFIER).value
+        func_identifier = self._eat(TokenType.IDENTIFIER).value
 
         self._eat(TokenType.LPAREN)
 
@@ -287,16 +287,16 @@ class AEParser(Parser):
         parameters = []
 
         if (not self._peekType(TokenType.RPAREN)):
-            var_type = self._eat(TokenType.IDENTIFIER)
-            var_identifier = self._eat(TokenType.IDENTIFIER)
+            var_type = self._eat(TokenType.IDENTIFIER).value
+            var_identifier = self._eat(TokenType.IDENTIFIER).value
             var_data = (var_type, var_identifier)
             parameters.append(var_data)
 
             while (self._peekType(TokenType.COMMA)):
                 self._eat(TokenType.COMMA)
 
-                var_type = self._eat(TokenType.IDENTIFIER)
-                var_identifier = self._eat(TokenType.IDENTIFIER)
+                var_type = self._eat(TokenType.IDENTIFIER).value
+                var_identifier = self._eat(TokenType.IDENTIFIER).value
                 var_data = (var_type, var_identifier)
                 parameters.append(var_data)
 

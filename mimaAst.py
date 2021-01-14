@@ -48,7 +48,7 @@ class NodeValue(Node):
 class NodeBinaryArithm(Node):
     def __init__(self, op, left_node, right_node):
         # This could also just be an enum
-        assert op in ["+", "-", "/", "*", "*"]
+        assert op in ["+", "-", "/", "*", "%"]
         self.op = op
         self.left_node = left_node
         self.right_node = right_node
@@ -86,12 +86,11 @@ class NodeUnaryArithm(Node):
 
 class NodeVariable(Node):
     def __init__(self, identifier):
-        super().__init__(identifier)
         self.identifier = identifier
 
     @property
     def _value(self):
-        return identifier
+        return self.identifier
 
 class NodeVariableDecl(Node):
     def __init__(self, type, identifier):
