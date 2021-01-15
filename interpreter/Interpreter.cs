@@ -22,7 +22,7 @@ namespace mima_c.interpreter
             // First Node must always be a Program Node
             ((Program)ast).Walk(globalScope);
 
-            FuncCall mainCall = new FuncCall("main", new List<AST>());
+            FuncCall mainCall = new FuncCall("main", new List<dynamic>());
 
             return mainCall.Walk(globalScope).Get<int>();
         }
