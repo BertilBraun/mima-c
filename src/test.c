@@ -1,4 +1,4 @@
-
+﻿
 /* int a = 5, b, c = 5; */
 /* double b; */
 
@@ -20,7 +20,7 @@ int fac(int n) {
 int a, b[1];
 
 int fibbonachi(int n) {
-    int f[5] = {1, 1 + fibbonachi(5)};
+    int f[5] = { 1, 1 + fibbonachi(5) };
     int a = 0, b = 1;
     for (int i = 0; i < n; i = i + 1) {
         int c = b;
