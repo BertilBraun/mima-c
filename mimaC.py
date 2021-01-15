@@ -18,26 +18,27 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='C to Mima Compiler')
     
     parser.add_argument('--file', type=str, help='The file which need to be compiled', default="src/test.c")
-    parser.add_argument('--show_debug_output', action='store_true', help='Show all debug output')
+    parser.add_argument('--no_debug', action='store_true', help='Show all debug output', default=False)
 
     args = parser.parse_args()
-    # TODO: uncomment here to always show debug output
-    # args.show_debug_output = True
+
+    show_debug = not args.no_debug
+    print(show_debug, args)
 
     with open(args.file) as file:
         input_text = file.read()
 
     preprocessed_text = Preprozessor(input_text).getProcessedText()
-    if args.show_debug_output:
+    if show_debug:
         print("preprosessing done")
         print(preprocessed_text)
 
     tokenstream = Lexer(preprocessed_text).tokenStream()
-    if args.show_debug_output:
+    if show_debug:
         print("lexing done")
 
     ast = AEParser(tokenstream).parse()
-    if args.show_debug_output:
+    if show_debug:
         print("parsing done")
         print()
         print("AST: ================================")
@@ -46,7 +47,7 @@ if __name__ == "__main__":
         print()
 
     result = Interpreter(ast).interpret()
-    if args.show_debug_output:
+    if show_debug:
         print()
         print("interpreting done")
         print("result:", result)

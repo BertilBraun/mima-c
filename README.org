@@ -84,8 +84,13 @@ p6             -> (p4 (LT | GT | GEQ | LEQ)* p4)
 p4             -> (p3 (PLUS | MINUS))* p3
 p3             -> (unary (MULTIPLY | DIVIDE | MOD))* unary
 unary          -> MINUS value | value
-value          -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER
+value          -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER | arraylit | arrayaccess
 functioncall   -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
+arrayaccess    -> IDENTIFIER LBRACKET expr RBRACKET
+arraylit -> LBRACE (expr)? (, expr)* RBRACE
+#+end_src
+
+#+begin_src
 #+end_src
 
 #+begin_src
@@ -103,7 +108,8 @@ intrinsic      -> INTRINSIC LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 #+begin_src
 program        -> (statement)*
 statement      -> ((vardecl | funcdecl)? SEMICOLON)
-vardecl        -> IDENTIFIER IDENTIFIER (= expr)? (, IDENTIFIER (= expr)?)*
+vardecl        -> IDENTIFIER vardecl' (, vardecl')*
+vardecl'       -> IDENTIFIER (LBRACKET (expr)? RBRACKET)? (= expr)?
 funcdecl       -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | IDENTIFIER IDENTIFIER (COMMA IDENTIFIER IDENTIFIER)* RPAREN) ( SEMICOLON | block)
 #+end_src
 

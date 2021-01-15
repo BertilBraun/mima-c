@@ -40,6 +40,8 @@ token_regex = {
     TokenType.SEMICOLON  : r";",
     TokenType.LBRACE     : r"{",
     TokenType.RBRACE     : r"}",
+    TokenType.LBRACKET   : r"\[",
+    TokenType.RBRACKET   : r"\]",
     # TokenType.DOUBLE      : r"[0-9]*\.[0-9]+",
     # TokenType.FLOAT     : r"[0-9]*\.[0-9]+f",
 }

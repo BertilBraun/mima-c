@@ -10,12 +10,17 @@
 /*     b = c = 2 + 1 - 2; */
 /* } */
 
+
 int fac(int n) {
     if (n == 1) return 1;
     return n * fac(n - 1);
 }
 
+
+int a, b[1];
+
 int fibbonachi(int n) {
+    int f[5] = {1, 1 + fibbonachi(5)};
     int a = 0, b = 1;
     for (int i = 0; i < n; i = i + 1) {
         int c = b;

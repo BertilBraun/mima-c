@@ -38,6 +38,8 @@ class TokenType(Enum):
     NEQ        = 29
     BREAK      = 30
     CONTINUE   = 31
+    LBRACKET   = 32
+    RBRACKET   = 33
 
     UNDEFINED = -1
 

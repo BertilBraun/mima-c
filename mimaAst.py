@@ -93,13 +93,18 @@ class NodeVariable(Node):
         return self.identifier
 
 class NodeVariableDecl(Node):
-    def __init__(self, type, identifier):
+    def __init__(self, type, identifier, count_expr):
         self.type = type
         self.identifier = identifier
+        self.count_expr = count_expr
 
     @property
     def _value(self):
         return (self.type, self.identifier)
+
+    @property
+    def _children(self):
+        return [self.count_expr] if self.count_expr else []
 
 class NodeVariableAssign(Node):
     def __init__(self, identifier, node):
@@ -156,8 +161,29 @@ class NodeFuncDef(Node):
     def _children(self):
         return [self.block]
 
+class NodeArrayAccess(Node):
+    def __init__(self, identifier : str, index_expr : Node):
+        self.identifier = identifier
+        self.index_expr = index_expr
+
+    @property
+    def _value(self):
+        return self.identifier
+
+    @property
+    def _children(self):
+        return [self.index_expr]
+
+class NodeArrayLit(Node):
+    def __init__(self, value_expr_list : [Node]):
+        self.value_expr_list = value_expr_list
+
+    @property
+    def _children(self):
+        return self.value_expr_list
+
 class NodeStatements(Node):
-    def __init__(self, statements):
+    def __init__(self, statements : [Node]):
         self.statements = statements
 
     @property

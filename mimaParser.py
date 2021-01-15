@@ -58,9 +58,13 @@ class AEParser(Parser):
         if self._peek().token_type in token_to_node_type.keys():
             token = self._eat(self._peek().token_type)
             return NodeValue(token_to_node_type[token.token_type], token.value)
+        if self._peekType(TokenType.LBRACE):
+            return self.arraylit()
         if self._peekType(TokenType.IDENTIFIER):
             if self._peekType(TokenType.LPAREN, 1):
                 return self.functioncall()
+            elif self._peekType(TokenType.LBRACKET, 1):
+                return self.arrayaccess()
             else:
                 token = self._eat(TokenType.IDENTIFIER)
                 return NodeVariable(token.value)
@@ -70,6 +74,24 @@ class AEParser(Parser):
         n1 = self.expr()
         self._eat(TokenType.RPAREN)
         return n1
+
+    def arrayaccess(self) -> Node:
+        identifier = self._eat(TokenType.IDENTIFIER).value
+        self._eat(TokenType.LBRACKET)
+        index_expr = self.expr()
+        self._eat(TokenType.RBRACKET)
+        return NodeArrayAccess(identifier, index_expr)
+
+    def arraylit(self) -> Node:
+        self._eat(TokenType.LBRACE)
+        expressions = []
+        if not self._peekType(TokenType.RBRACE):
+            expressions.append(self.expr())
+            while self._peekType(TokenType.COMMA):
+                self._eat(TokenType.COMMA)
+                expressions.append(self.expr())
+        self._eat(TokenType.RBRACE)
+        return NodeArrayLit(expressions)
 
     def unary(self) -> Node:
         if self._peekType(TokenType.MINUS):
@@ -155,39 +177,43 @@ class AEParser(Parser):
     def expr(self) -> Node:
         return self.assignment()
 
-    def vardecl(self) -> Node:
-        var_type = self._eat(TokenType.IDENTIFIER).value
+    def vardeclprime(self, statements, var_type):
         var_identifier = self._eat(TokenType.IDENTIFIER).value
 
-        # we can write multiple statements in one declaration
-        # e.g.: int a, b = 5, c;
-        statements = []
+        count_expr = None
+        if self._peekType(TokenType.LBRACKET):
+            self._eat(TokenType.LBRACKET)
+            # Type is array if it ends in []
+            var_type += "[]"
+            if not self._peekType(TokenType.RBRACKET):
+                count_expr = self.expr()
+            self._eat(TokenType.RBRACKET)
+
+        var_data = (var_type, var_identifier)
 
         # For now the difference between declaration with and without assignment is the
         # class of the node used
         # ValueNode for declaration
         # UnaryNode for declaration with assignment
 
-        statements.append(NodeVariableDecl(var_type, var_identifier))
-
-        # Duplicate code that could be extraced
+        statements.append(NodeVariableDecl(var_type, var_identifier, count_expr))
         if self._peekType(TokenType.EQUALS):
             self._eat(TokenType.EQUALS)
             statements.append(NodeVariableAssign(var_identifier, self.expr()))
 
-        while (self._peekType(TokenType.COMMA)):
-            self._eat(TokenType.COMMA)
-            var_identifier = self._eat(TokenType.IDENTIFIER).value
-            var_data = (var_type, var_identifier)
+    def vardecl(self) -> Node:
+        var_type = self._eat(TokenType.IDENTIFIER).value
+        # we can write multiple statements in one declaration
+        # e.g.: int a, b = 5, c;
+        statements = []
+        self.vardeclprime(statements, var_type)
 
-            statements.append(NodeVariableDecl(var_type, var_identifier))
-            if self._peekType(TokenType.EQUALS):
-                self._eat(TokenType.EQUALS)
-                statements.append(NodeVariableAssign(var_identifier, self.expr()))
+        while self._peekType(TokenType.COMMA):
+            self._eat(TokenType.COMMA)
+            self.vardeclprime(statements, var_type)
 
         return NodeStatements(statements)
 
-    # TODO: differentiate between general statements and blockstatements
     def statement(self) -> Node:
         if self._peekType(TokenType.IDENTIFIER) and \
            self._peekType(TokenType.IDENTIFIER, 1):
