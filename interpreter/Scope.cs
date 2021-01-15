@@ -17,19 +17,19 @@ namespace mima_c.interpreter
             this.translation = new Dictionary<Signature, Value>();
         }
 
-        public Value translate(Signature symbol)
+        public Value Translate(Signature symbol)
         {
             if (translation.ContainsKey(symbol))
                 return translation[symbol];
 
             if (parent != null)
-                return parent.translate(symbol);
+                return parent.Translate(symbol);
 
             Debug.Assert(false, "Variable or Function not defined! Signature: " + symbol.ToString());
             return null;
         }
 
-        public bool addSymbol(Signature symbol, Value value)
+        public bool AddSymbol(Signature symbol, Value value)
         {
             if (translation.ContainsKey(symbol))
             {

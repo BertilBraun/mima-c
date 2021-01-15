@@ -96,7 +96,7 @@ namespace mima_c
             this.tokens = tokens;
         }
 
-        public Token eat(TokenType expectedTokenType)
+        public Token Eat(TokenType expectedTokenType)
         {
             Token nextToken = tokens.FirstOrDefault();
 
@@ -112,7 +112,7 @@ namespace mima_c
             return nextToken;
         }
 
-        public Token peek(int n = 0)
+        public Token Peek(int n = 0)
         {
             return tokens.Count <= n ? new Token() : tokens[n];
         }

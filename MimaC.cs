@@ -18,18 +18,18 @@ namespace mima_c
             
             string inputText = File.ReadAllText(file);
 
-            string preprozessedText = new Preprozessor(inputText).getProcessedText();
+            string preprozessedText = new Preprozessor(inputText).GetProcessedText();
             if (showOuput)
             {
                 Console.WriteLine("Preprozessing Done");
                 Console.WriteLine(preprozessedText);
             }
 
-            TokenStream tokenStream = new Lexer(preprozessedText).getTokenStream();
+            TokenStream tokenStream = new Lexer(preprozessedText).GetTokenStream();
             if (showOuput)
                 Console.WriteLine("Lexing Done");
 
-            AST ast = new CParser(tokenStream).parse();
+            AST ast = new CParser(tokenStream).Parse();
             if (showOuput)
             {
                 Console.WriteLine("Parsing Done");
@@ -38,7 +38,7 @@ namespace mima_c
                 Console.WriteLine("-------------------------------------------------");
             }
 
-            int result = new interpreter.Interpreter(ast).interpret();
+            int result = new interpreter.Interpreter(ast).Interpret();
             if (showOuput)
             {
                 Console.WriteLine();

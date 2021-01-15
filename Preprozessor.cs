@@ -14,7 +14,7 @@ namespace mima_c
 
         public string InputText { get; }
 
-        internal string getProcessedText()
+        internal string GetProcessedText()
         {
             string text = InputText;
 

@@ -52,7 +52,7 @@
             originalText = preprozessedText;
         }
 
-        internal TokenStream getTokenStream()
+        internal TokenStream GetTokenStream()
         {
             string text = originalText;
 
@@ -76,7 +76,7 @@
                     {
                         string matchString = match.Value;
 
-                        tokens.Add(new Token(item.Key, calcPos(text)));
+                        tokens.Add(new Token(item.Key, CalcPos(text)));
                         text = text.Substring(matchString.Length);
 
                         if (item.Key.In(TokenType.INTLITERAL, TokenType.IDENTIFIER, TokenType.INTRINSIC))
@@ -97,7 +97,7 @@
             return new TokenStream(tokens);
         }
 
-        internal Pos calcPos(string restText)
+        internal Pos CalcPos(string restText)
         {
             string parsedText = originalText.Substring(0, originalText.Length - restText.Length);
             string[] newLines = parsedText.Split('\n');

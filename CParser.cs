@@ -17,33 +17,33 @@ namespace mima_c
             TokenStream = tokenStream;
         }
 
-        public abstract AST parse();
+        public abstract AST Parse();
 
-        protected Token eat(TokenType expectedToken)
+        protected Token Eat(TokenType expectedToken)
         {
-            return TokenStream.eat(expectedToken);
+            return TokenStream.Eat(expectedToken);
         }
-        protected string eatV(TokenType expectedToken)
+        protected string EatV(TokenType expectedToken)
         {
-            return TokenStream.eat(expectedToken).value;
+            return TokenStream.Eat(expectedToken).value;
         }
 
-        protected bool peekEatIf(TokenType expectedToken, int n = 0)
+        protected bool PeekEatIf(TokenType expectedToken, int n = 0)
         {
-            if (!peekType(expectedToken))
+            if (!PeekType(expectedToken))
                 return false;
-            eat(expectedToken);
+            Eat(expectedToken);
             return true;
         }
 
-        protected Token peek(int n = 0)
+        protected Token Peek(int n = 0)
         {
-            return TokenStream.peek(n);
+            return TokenStream.Peek(n);
         }
 
-        protected bool peekType(TokenType expectedToken, int n = 0)
+        protected bool PeekType(TokenType expectedToken, int n = 0)
         {
-            return peek(n).tokenType == expectedToken;
+            return Peek(n).tokenType == expectedToken;
         }
     }
 
@@ -53,11 +53,11 @@ namespace mima_c
         {
         }
 
-        public override AST parse()
+        public override AST Parse()
         {
-            eat(TokenType.BOS);
+            Eat(TokenType.BOS);
             AST node = program();
-            eat(TokenType.EOS);
+            Eat(TokenType.EOS);
             return node;
         }
 
@@ -65,7 +65,7 @@ namespace mima_c
         {
             ASTList statements = new ASTList();
 
-            while (!peekType(TokenType.EOS))
+            while (!PeekType(TokenType.EOS))
                 statements.Add(statement());
 
             return new Program(statements);
@@ -73,19 +73,19 @@ namespace mima_c
 
         private AST statement()
         {
-            if (peekType(TokenType.IDENTIFIER) && peekType(TokenType.IDENTIFIER, 1))
+            if (PeekType(TokenType.IDENTIFIER) && PeekType(TokenType.IDENTIFIER, 1))
             {
-                if (peekType(TokenType.LPAREN, 2))
+                if (PeekType(TokenType.LPAREN, 2))
                     return funcdecl();
                 else
                 {
                     AST node = vardecl();
-                    eat(TokenType.SEMICOLON);
+                    Eat(TokenType.SEMICOLON);
                     return node;
                 }
             }
             // unhandled error condition
-            eat(TokenType.UNDEFINED);
+            Eat(TokenType.UNDEFINED);
             return null;
         }
 
@@ -93,50 +93,50 @@ namespace mima_c
         {
             // IDENTIFIER IDENTIFIER LPAREN (RPAREN | vardecl (COMMA vardecl)*)
 
-            string returnType = eatV(TokenType.IDENTIFIER);
-            string identifier = eatV(TokenType.IDENTIFIER);
+            string returnType = EatV(TokenType.IDENTIFIER);
+            string identifier = EatV(TokenType.IDENTIFIER);
 
-            eat(TokenType.LPAREN);
+            Eat(TokenType.LPAREN);
 
             List<FuncDecl.Parameter> parameters = new List<FuncDecl.Parameter>();
 
-            if (!peekType(TokenType.RPAREN))
+            if (!PeekType(TokenType.RPAREN))
             {
-                string varType = eatV(TokenType.IDENTIFIER);
-                string varIdentifier = eatV(TokenType.IDENTIFIER);
+                string varType = EatV(TokenType.IDENTIFIER);
+                string varIdentifier = EatV(TokenType.IDENTIFIER);
 
                 parameters.Add(new FuncDecl.Parameter(varType, varIdentifier));
 
-                while (peekEatIf(TokenType.COMMA))
+                while (PeekEatIf(TokenType.COMMA))
                 {
-                    varType = eatV(TokenType.IDENTIFIER);
-                    varIdentifier = eatV(TokenType.IDENTIFIER);
+                    varType = EatV(TokenType.IDENTIFIER);
+                    varIdentifier = EatV(TokenType.IDENTIFIER);
 
                     parameters.Add(new FuncDecl.Parameter(varType, varIdentifier));
                 }
             }
 
-            eat(TokenType.RPAREN);
+            Eat(TokenType.RPAREN);
 
             ASTList statements = new ASTList();
             statements.Add(new FuncDecl(returnType, identifier, parameters));
 
-            if (peekType(TokenType.LBRACE))
-                statements.Add(new FuncDef(returnType, identifier, parameters, block()));
+            if (PeekType(TokenType.LBRACE))
+                statements.Add(new FuncDef(returnType, identifier, parameters, block() as BlockStatements));
             else
-                eat(TokenType.SEMICOLON);
+                Eat(TokenType.SEMICOLON);
 
             return new Statements(statements);
         }
 
         private AST vardecl()
         {
-            string varType = eatV(TokenType.IDENTIFIER);
+            string varType = EatV(TokenType.IDENTIFIER);
 
             ASTList statements = new ASTList();
             vardeclprime(statements, varType);
 
-            while (peekEatIf(TokenType.COMMA))
+            while (PeekEatIf(TokenType.COMMA))
                 vardeclprime(statements, varType);
 
             return new Statements(statements);
@@ -144,20 +144,20 @@ namespace mima_c
 
         private void vardeclprime(ASTList statements, string varType)
         {
-            string identifier = eatV(TokenType.IDENTIFIER);
+            string identifier = EatV(TokenType.IDENTIFIER);
 
-            if (peekEatIf(TokenType.LBRACKET))
+            if (PeekEatIf(TokenType.LBRACKET))
             {
-                if (peekType(TokenType.RBRACKET))
+                if (PeekType(TokenType.RBRACKET))
                     statements.Add(new ArrayDecl(varType + "[]", identifier, null));
                 else
                     statements.Add(new ArrayDecl(varType + "[]", identifier, expr()));
-                eat(TokenType.RBRACKET);
+                Eat(TokenType.RBRACKET);
             }
             else
                 statements.Add(new VariableDecl(varType, identifier));
 
-            if (peekEatIf(TokenType.ASSIGN))
+            if (PeekEatIf(TokenType.ASSIGN))
                 statements.Add(new VariableAssign(identifier, expr()));
         }
 
@@ -169,10 +169,10 @@ namespace mima_c
 
         private AST assignment()
         {
-            if (peekType(TokenType.IDENTIFIER) && peekType(TokenType.ASSIGN, 1))
+            if (PeekType(TokenType.IDENTIFIER) && PeekType(TokenType.ASSIGN, 1))
             {
-                string identifier = eatV(TokenType.IDENTIFIER);
-                eat(TokenType.ASSIGN);
+                string identifier = EatV(TokenType.IDENTIFIER);
+                Eat(TokenType.ASSIGN);
                 return new VariableAssign(identifier, assignment());
             }
 
@@ -201,8 +201,8 @@ namespace mima_c
 
         private AST unary()
         {
-            if (peekEatIf(TokenType.MINUS))
-                return new UnaryArithm(Operator.parse(TokenType.MINUS), value());
+            if (PeekEatIf(TokenType.MINUS))
+                return new UnaryArithm(Operator.Parse(TokenType.MINUS), value());
             // TODO Expand here in future for Pointers
 
             return value();
@@ -210,70 +210,70 @@ namespace mima_c
 
         private AST value()
         {
-            if (Literal.tokenToType.ContainsKey(peek().tokenType))
+            if (Literal.tokenToType.ContainsKey(Peek().tokenType))
             {
-                Token token = eat(peek().tokenType);
+                Token token = Eat(Peek().tokenType);
                 return new Literal(Literal.tokenToType[token.tokenType], token.value);
             }
-            if (peekType(TokenType.LBRACE))
+            if (PeekType(TokenType.LBRACE))
             {
                 return arrayLiteral();
             }
-            if (peekType(TokenType.IDENTIFIER))
+            if (PeekType(TokenType.IDENTIFIER))
             {
-                if (peekType(TokenType.LPAREN, 1))
+                if (PeekType(TokenType.LPAREN, 1))
                     return functionCall();
-                else if (peekType(TokenType.LBRACKET, 1))
+                else if (PeekType(TokenType.LBRACKET, 1))
                     return arrayAccess();
                 else
-                    return new Variable(eatV(TokenType.IDENTIFIER));
+                    return new Variable(EatV(TokenType.IDENTIFIER));
             }
 
-            eat(TokenType.LPAREN);
+            Eat(TokenType.LPAREN);
             AST node = expr();
-            eat(TokenType.RPAREN);
+            Eat(TokenType.RPAREN);
             return node;
         }
 
         private AST arrayLiteral()
         {
-            eat(TokenType.LBRACE);
+            Eat(TokenType.LBRACE);
             ASTList expressions = readExprList(TokenType.RBRACE);
-            eat(TokenType.RBRACE);
+            Eat(TokenType.RBRACE);
             return new ArrayLiteral(expressions);
         }
 
         private AST functionCall()
         {
-            string identifier = eatV(TokenType.IDENTIFIER);
+            string identifier = EatV(TokenType.IDENTIFIER);
 
-            eat(TokenType.LPAREN);
+            Eat(TokenType.LPAREN);
             ASTList arguments = readExprList(TokenType.RPAREN);
-            eat(TokenType.RPAREN);
+            Eat(TokenType.RPAREN);
 
             return new FuncCall(identifier, arguments);
         }
 
         private AST arrayAccess()
         {
-            string identifier = eatV(TokenType.IDENTIFIER);
+            string identifier = EatV(TokenType.IDENTIFIER);
 
-            eat(TokenType.LBRACKET);
+            Eat(TokenType.LBRACKET);
             AST indexExpr = expr();
-            eat(TokenType.RBRACKET);
+            Eat(TokenType.RBRACKET);
 
             return new ArrayAccess(identifier, indexExpr);
         }
 
         private AST block()
         {
-            eat(TokenType.LBRACE);
+            Eat(TokenType.LBRACE);
 
             ASTList blockStatements = new ASTList();
-            while (!peekType(TokenType.RBRACE))
+            while (!PeekType(TokenType.RBRACE))
                 blockStatements.Add(blockStatement());
 
-            eat(TokenType.RBRACE);
+            Eat(TokenType.RBRACE);
 
             return new BlockStatements(blockStatements);
         }
@@ -282,48 +282,48 @@ namespace mima_c
         {
             // NOTE: ONLY RETURN DIRECTLY IF NO SEMICOLON IS NEEDED
 
-            if (peekType(TokenType.LBRACE))
+            if (PeekType(TokenType.LBRACE))
                 return block();
-            if (peekType(TokenType.FOR))
+            if (PeekType(TokenType.FOR))
                 return for_();
-            if (peekType(TokenType.WHILE))
+            if (PeekType(TokenType.WHILE))
                 return while_();
-            if (peekType(TokenType.IF))
+            if (PeekType(TokenType.IF))
                 return if_();
 
             AST node;
-            if (peekType(TokenType.BREAK))
+            if (PeekType(TokenType.BREAK))
                 node = break_();
-            else if (peekType(TokenType.CONTINUE))
+            else if (PeekType(TokenType.CONTINUE))
                 node = continue_();
-            else if (peekType(TokenType.RETURN))
+            else if (PeekType(TokenType.RETURN))
                 node = return_();
-            else if (peekType(TokenType.INTRINSIC))
+            else if (PeekType(TokenType.INTRINSIC))
                 node = intrinsic();
-            else if (peekType(TokenType.IDENTIFIER) && peekType(TokenType.IDENTIFIER, 1))
+            else if (PeekType(TokenType.IDENTIFIER) && PeekType(TokenType.IDENTIFIER, 1))
                 node = vardecl();
             else
                 node = expr();
 
-            eat(TokenType.SEMICOLON);
+            Eat(TokenType.SEMICOLON);
             return node;
         }
 
         private AST for_()
         {
-            eat(TokenType.FOR);
-            eat(TokenType.LPAREN);
+            Eat(TokenType.FOR);
+            Eat(TokenType.LPAREN);
 
             AST initialization;
-            if (peekType(TokenType.IDENTIFIER) && peekType(TokenType.IDENTIFIER, 1))
+            if (PeekType(TokenType.IDENTIFIER) && PeekType(TokenType.IDENTIFIER, 1))
                 initialization = vardecl();
             else
                 initialization = expr();
-            eat(TokenType.SEMICOLON);
+            Eat(TokenType.SEMICOLON);
             AST condition = expr();
-            eat(TokenType.SEMICOLON);
+            Eat(TokenType.SEMICOLON);
             AST execution = expr();
-            eat(TokenType.RPAREN);
+            Eat(TokenType.RPAREN);
 
             AST body = blockStatement();
 
@@ -332,10 +332,10 @@ namespace mima_c
 
         private AST while_()
         {
-            eat(TokenType.WHILE);
-            eat(TokenType.LPAREN);
+            Eat(TokenType.WHILE);
+            Eat(TokenType.LPAREN);
             AST condition = expr();
-            eat(TokenType.RPAREN);
+            Eat(TokenType.RPAREN);
             AST body = blockStatement();
 
             return new While(condition, body);
@@ -343,16 +343,16 @@ namespace mima_c
 
         private AST if_()
         {
-            eat(TokenType.IF);
-            eat(TokenType.LPAREN);
+            Eat(TokenType.IF);
+            Eat(TokenType.LPAREN);
             AST condition = expr();
-            eat(TokenType.RPAREN);
+            Eat(TokenType.RPAREN);
             AST ifBody = blockStatement();
 
             AST elseBody;
-            if (peekType(TokenType.ELSE))
+            if (PeekType(TokenType.ELSE))
             {
-                eat(TokenType.ELSE);
+                Eat(TokenType.ELSE);
                 elseBody = blockStatement();
             }
             else
@@ -363,29 +363,29 @@ namespace mima_c
 
         private AST break_()
         {
-            eat(TokenType.BREAK);
+            Eat(TokenType.BREAK);
             return new Break();
         }
 
         private AST continue_()
         {
-            eat(TokenType.CONTINUE);
+            Eat(TokenType.CONTINUE);
             return new Continue();
         }
 
         private AST return_()
         {
-            eat(TokenType.RETURN);
+            Eat(TokenType.RETURN);
             return new Return(expr());
         }
 
         private AST intrinsic()
         {
-            string type = eatV(TokenType.INTRINSIC);
+            string type = EatV(TokenType.INTRINSIC);
 
-            eat(TokenType.LPAREN);
+            Eat(TokenType.LPAREN);
             ASTList parameters = readExprList(TokenType.RPAREN);
-            eat(TokenType.RPAREN);
+            Eat(TokenType.RPAREN);
 
             return new Intrinsic(parameters, type);
         }
@@ -394,12 +394,12 @@ namespace mima_c
         {
             AST node1 = nextNodeFunc();
 
-            while (types.ToList().Contains(peek().tokenType))
+            while (types.ToList().Contains(Peek().tokenType))
             {
-                TokenType type = peek().tokenType;
-                eat(type);
+                TokenType type = Peek().tokenType;
+                Eat(type);
                 AST node2 = nextNodeFunc();
-                node1 = new BinaryArithm(Operator.parse(type), node1, node2);
+                node1 = new BinaryArithm(Operator.Parse(type), node1, node2);
             }
 
             return node1;
@@ -409,10 +409,10 @@ namespace mima_c
         {
             ASTList expressions = new ASTList();
 
-            if (!peekType(delimiter))
+            if (!PeekType(delimiter))
             {
                 expressions.Add(expr());
-                while (peekEatIf(TokenType.COMMA))
+                while (PeekEatIf(TokenType.COMMA))
                     expressions.Add(expr());
             }
 

@@ -11,5 +11,10 @@ namespace mima_c
         {
             return args.Contains(obj);
         }
+        public static string Escape(this string s)
+        {
+            // TODO escape
+            return s;
+        }
     }
 }

@@ -11,17 +11,17 @@ namespace mima_c.interpreter
     }
     class Function : Value
     {
-        string returnType;
+        public string returnType { get; }
 
-        ast.AST body;
-        List<ast.FuncDecl.Parameter> parameters;
+        public BlockStatements body { get; private set; }
+        public List<FuncDecl.Parameter> parameters { get; private set; }
 
         public Function(string returnType)
         {
             this.returnType = returnType;
         }
 
-        public void Define(AST body, List<FuncDecl.Parameter> parameters)
+        public void Define(BlockStatements body, List<FuncDecl.Parameter> parameters)
         {
             this.body = body;
             this.parameters = parameters;
@@ -30,18 +30,22 @@ namespace mima_c.interpreter
 
     class Variable : Value
     {
-        string type;
-        object value;
+        public RuntimeType value { get; set; }
 
-        public Variable(string type, object value)
+        public Variable(RuntimeType.Type type)
         {
-            this.type = type;
+            // Set compiler default value based on type?
+            this.value = new RuntimeType(type, null);
+        }
+        public Variable(RuntimeType value)
+        {
+            // Set compiler default value based on type?
             this.value = value;
         }
 
         public override string ToString()
         {
-            return string.Format("({0}, {1})", type, value);
+            return value.ToString();
         }
     }
 
@@ -68,10 +72,10 @@ namespace mima_c.interpreter
 
     class FunctionParam : Signature
     {
-        string type;
+        RuntimeType.Type type;
         string name;
 
-        public FunctionParam(string type, string name)
+        public FunctionParam(RuntimeType.Type type, string name)
         {
             this.type = type;
             this.name = name;
@@ -84,6 +88,12 @@ namespace mima_c.interpreter
         string name;
         List<FunctionParam> parameters;
 
+        // TODO HACK, signature should be based on parameter types, for now only on length of arguments
+        public FunctionSignature(string name, int argumentCount)
+        {
+            this.name = name;
+            this.parameters = new List<FunctionParam>(argumentCount);
+        }
         public FunctionSignature(string name, List<FunctionParam> parameters)
         {
             this.name = name;

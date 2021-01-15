@@ -48,8 +48,8 @@ namespace mima_c
                 // DOUBLELITERAL,
             }
 
-            Type type;
-            string value;
+            public Type type  { get; }
+            public string value  { get; }
 
             public Literal(Type type, string value)
             {
@@ -77,12 +77,12 @@ namespace mima_c
                 {TokenType.NEQ,      Code.NEQ       },
             };
 
-            public static Code parse(TokenType type)
+            public static Code Parse(TokenType type)
             {
                 if (!tokenToOperator.ContainsKey(type))
                     throw new ArgumentException("Tried to convert invalid Type to Operator Code: " + type.ToString());
                 return tokenToOperator[type];
-            }            
+            }
 
             public enum Code
             {
@@ -102,9 +102,9 @@ namespace mima_c
 
         class BinaryArithm : AST
         {
-            AST leftNode;
-            AST rightNode;
-            Operator.Code op;
+            public AST leftNode  { get; }
+            public AST rightNode  { get; }
+            public Operator.Code op  { get; }
 
             public BinaryArithm(Operator.Code op, AST leftNode, AST rightNode)
             {
@@ -119,8 +119,8 @@ namespace mima_c
 
         class UnaryArithm : AST
         {
-            AST node;
-            Operator.Code op;
+            public AST node  { get; }
+            public Operator.Code op  { get; }
 
             public UnaryArithm(Operator.Code op, AST node)
             {
@@ -136,7 +136,7 @@ namespace mima_c
 
         class Variable : AST
         {
-            string identifier;
+            public string identifier  { get; }
 
             public Variable(string identifier)
             {
@@ -148,8 +148,8 @@ namespace mima_c
 
         class VariableDecl : AST
         {
-            string type;
-            string identifier;
+            public string type { get; }
+            public string identifier  { get; }
 
             public VariableDecl(string type, string identifier)
             {
@@ -162,7 +162,7 @@ namespace mima_c
 
         class ArrayDecl : VariableDecl
         {
-            AST countExpr;
+            public AST countExpr  { get; }
 
             public ArrayDecl(string type, string identifier, AST countExpr) : base(type, identifier)
             {
@@ -174,8 +174,8 @@ namespace mima_c
 
         class VariableAssign : AST
         {
-            string identifier;
-            AST node;
+            public string identifier  { get; }
+            public AST node  { get; }
 
             public VariableAssign(string identifier, AST node)
             {
@@ -189,8 +189,8 @@ namespace mima_c
 
         class FuncCall : AST
         {
-            string identifier;
-            ASTList arguments;
+            public string identifier  { get; }
+            public ASTList arguments  { get; }
 
             public FuncCall(string identifier, ASTList arguments)
             {
@@ -216,9 +216,9 @@ namespace mima_c
                 }
             }
 
-            string returnType;
-            string identifier;
-            List<Parameter> parameters;
+            public string returnType  { get; }
+            public string identifier  { get; }
+            public List<Parameter> parameters  { get; }
 
             public FuncDecl(string returnType, string identifier, List<Parameter> parameters)
             {
@@ -227,14 +227,14 @@ namespace mima_c
                 this.parameters = parameters;
             }
 
-            protected override object _value => (returnType, identifier, parameters);
+            protected override object _value => string.Format("{0} {1}({2})", returnType, identifier, parameters);
         }
 
         class FuncDef : FuncDecl
         {
-            AST block;
+            public BlockStatements block  { get; }
 
-            public FuncDef(string returnType, string identifier, List<Parameter> parameters, AST block)
+            public FuncDef(string returnType, string identifier, List<Parameter> parameters, BlockStatements block)
                 : base(returnType, identifier, parameters)
             {
                 this.block = block;
@@ -245,8 +245,8 @@ namespace mima_c
 
         class ArrayAccess : AST
         {
-            string identifier;
-            AST indexExpr;
+            public string identifier  { get; }
+            public AST indexExpr  { get; }
 
             public ArrayAccess(string identifier, AST indexExpr)
             {
@@ -260,7 +260,7 @@ namespace mima_c
 
         class ArrayLiteral : AST
         {
-            ASTList valueListExprs;
+            public ASTList valueListExprs  { get; }
 
             public ArrayLiteral(ASTList valueListExprs)
             {
@@ -272,7 +272,7 @@ namespace mima_c
 
         class Statements : AST
         {
-            ASTList statements;
+            public ASTList statements { get; }
 
             public Statements(ASTList statements)
             {
@@ -298,10 +298,10 @@ namespace mima_c
 
         class For : AST
         {
-            AST initialization;
-            AST condition;
-            AST loopExecution;
-            AST body;
+            public AST initialization  { get; }
+            public AST condition  { get; }
+            public AST loopExecution  { get; }
+            public AST body  { get; }
 
             public For(AST initialization, AST condition, AST loopExecution, AST body)
             {
@@ -316,8 +316,8 @@ namespace mima_c
 
         class While : AST
         {
-            AST condition;
-            AST body;
+            public AST condition  { get; }
+            public AST body  { get; }
 
             public While(AST condition, AST body)
             {
@@ -330,9 +330,9 @@ namespace mima_c
 
         class If : AST
         {
-            AST condition;
-            AST ifBody;
-            AST elseBody;
+            public AST condition  { get; }
+            public AST ifBody  { get; }
+            public AST elseBody  { get; }
 
             public If(AST condition, AST ifBody, AST elseBody)
             {
@@ -356,7 +356,7 @@ namespace mima_c
 
         class Return : AST
         {
-            AST returnExpr;
+            public AST returnExpr { get; }
 
             public Return(AST returnExpr)
             {
@@ -368,8 +368,8 @@ namespace mima_c
 
         class Intrinsic : AST
         {
-            ASTList parameters;
-            string type;
+            public ASTList parameters { get; }
+            public string type { get; }
 
             public Intrinsic(ASTList parameters, string type)
             {
