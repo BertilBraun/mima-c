@@ -25,7 +25,7 @@ namespace mima_c
 
                 if (_children != null)
                     foreach (var child in _children)
-                        result += string.Join("\t|", ("\n->: " + child.ToString().TrimStart()).Split('\n'));
+                        result += string.Join("\n\t|", ("\n->: " + child.ToString().TrimStart()).Split('\n'));
 
                 return result;
             }
@@ -33,6 +33,12 @@ namespace mima_c
 
         class Literal : AST
         {
+            public static Dictionary<TokenType, Type> tokenToType = new Dictionary<TokenType, Type>
+            {
+                {TokenType.INTLITERAL, Type.INTLITERAL },
+                {TokenType.STRINGLITERAL, Type.STRINGLITERAL },
+                {TokenType.CHARLITERAL, Type.CHARLITERAL },
+            };
             public enum Type
             {
                 INTLITERAL,
@@ -54,40 +60,78 @@ namespace mima_c
             protected override object _value => (type, value);
         }
 
+        abstract class Operator
+        {
+            static Dictionary<TokenType, Code> tokenToOperator = new Dictionary<TokenType, Code>
+            {
+                {TokenType.PLUS,     Code.PLUS        },
+                {TokenType.MINUS,    Code.MINUS         },
+                {TokenType.DIVIDE,   Code.DIVIDE          },
+                {TokenType.MULTIPLY, Code.MULTIPLY            },
+                {TokenType.MODULO,   Code.MODULO          },
+                {TokenType.LT,       Code.LT      },
+                {TokenType.GT,       Code.GT      },
+                {TokenType.GEQ,      Code.GEQ       },
+                {TokenType.LEQ,      Code.LEQ       },
+                {TokenType.EQ,       Code.EQ      },
+                {TokenType.NEQ,      Code.NEQ       },
+            };
+
+            public static Code parse(TokenType type)
+            {
+                if (!tokenToOperator.ContainsKey(type))
+                    throw new ArgumentException("Tried to convert invalid Type to Operator Code: " + type.ToString());
+                return tokenToOperator[type];
+            }            
+
+            public enum Code
+            {
+                PLUS,
+                MINUS,
+                DIVIDE,
+                MULTIPLY,
+                MODULO,
+                LT,
+                GT,
+                GEQ,
+                LEQ,
+                EQ,
+                NEQ,
+            }
+        }
+
         class BinaryArithm : AST
         {
             AST leftNode;
             AST rightNode;
-            string op;
+            Operator.Code op;
 
-            public BinaryArithm(string op, AST leftNode, AST rightNode)
+            public BinaryArithm(Operator.Code op, AST leftNode, AST rightNode)
             {
-                Debug.Assert(op.In("+", "-", "/", "*", "%", "<", ">", "<=", ">=", "==", "!="));
                 this.op = op;
                 this.leftNode = leftNode;
                 this.rightNode = rightNode;
             }
 
-            protected override object _value => op;
             protected override ASTList _children => new ASTList { leftNode, rightNode };
-            protected override string _nodeName => op;
+            protected override string _nodeName => op.ToString();
         }
 
         class UnaryArithm : AST
         {
             AST node;
-            string op;
+            Operator.Code op;
 
-            public UnaryArithm(string op, AST node)
+            public UnaryArithm(Operator.Code op, AST node)
             {
-                Debug.Assert(op.In("-")); // TODO For Future, op.In("-", "+", "*", "&")
+                Debug.Assert(op.In(Operator.Code.MINUS)); // TODO For Future, op.In("-", "+", "*", "&")
                 this.op = op;
                 this.node = node;
             }
 
             protected override object _value => op;
             protected override ASTList _children => new ASTList { node };
-            protected override string _nodeName => op;
+            protected override string _nodeName => op.ToString();
         }
 
         class Variable : AST

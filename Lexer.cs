@@ -9,8 +9,8 @@
     {
         internal Dictionary<TokenType, string> tokenRegex = new Dictionary<TokenType, string>
         {
-            {TokenType.STRINGLIT  , @""".*?(?<!\\)""" },
-            {TokenType.CHARLIT    , @"'.*?(?<!\\)'"},
+            {TokenType.STRINGLITERAL  , @""".*?(?<!\\)""" },
+            {TokenType.CHARLITERAL    , @"'.*?(?<!\\)'"},
             {TokenType.INTLITERAL , @"[0-9]+"},
             {TokenType.LPAREN     , @"\("},
             {TokenType.RPAREN     , @"\)"},
@@ -23,9 +23,9 @@
             {TokenType.LEQ        , @"<="},
             {TokenType.LT         , @"<"},
             {TokenType.GT         , @">"},
-            {TokenType.EQUAL      , @"=="},
+            {TokenType.EQ      , @"=="},
             {TokenType.NEQ        , @"<="},
-            {TokenType.EQUALS     , @"="},
+            {TokenType.ASSIGN     , @"="},
             {TokenType.COMMA      , @"\,"},
             {TokenType.WHILE      , @"while"},
             {TokenType.FOR        , @"for"},
@@ -81,7 +81,7 @@
 
                         if (item.Key.In(TokenType.INTLITERAL, TokenType.IDENTIFIER, TokenType.INTRINSIC))
                             tokens.Last().value = matchString;
-                        else if (item.Key.In(TokenType.STRINGLIT, TokenType.CHARLIT))
+                        else if (item.Key.In(TokenType.STRINGLITERAL, TokenType.CHARLITERAL))
                             tokens.Last().value = matchString.Substring(1, matchString.Length - 2);
 
                         break;

@@ -16,7 +16,8 @@ namespace mima_c.interpreter
 
         internal int interpret()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Not implemented!");
+            return 0;
         }
     }
 }

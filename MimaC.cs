@@ -27,12 +27,9 @@ namespace mima_c
 
             TokenStream tokenStream = new Lexer(preprozessedText).getTokenStream();
             if (showOuput)
-            {
                 Console.WriteLine("Lexing Done");
-                Console.WriteLine(tokenStream);
-            }
 
-            AST ast = new AEParser(tokenStream).parse();
+            AST ast = new CParser(tokenStream).parse();
             if (showOuput)
             {
                 Console.WriteLine("Parsing Done");
