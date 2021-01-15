@@ -47,7 +47,7 @@ namespace mima_c.interpreter
 
             foreach (var item in translation)
             {
-                builder.Append(string.Format("({0}: {1})", item.Key, item.Value));
+                builder.Append("({0}: {1})".Format(item.Key, item.Value));
                 builder.Append("\n");
             }
 

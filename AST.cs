@@ -19,9 +19,9 @@ namespace mima_c
             {
                 string result;
                 if (_value != null)
-                    result = string.Format("[{0}] ({1}): ", _nodeName, _value);
+                    result = "[{0}] ({1}): ".Format(_nodeName, _value);
                 else
-                    result = string.Format("[{0}]: ", _nodeName);
+                    result = "[{0}]: ".Format(_nodeName);
 
                 if (_children != null)
                     foreach (var child in _children)
@@ -227,7 +227,7 @@ namespace mima_c
                 this.parameters = parameters;
             }
 
-            protected override object _value => string.Format("{0} {1}({2})", returnType, identifier, parameters);
+            protected override object _value => "{0} {1}({2})".Format(returnType, identifier, parameters);
         }
 
         class FuncDef : FuncDecl

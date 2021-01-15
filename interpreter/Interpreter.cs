@@ -73,7 +73,7 @@ namespace mima_c.interpreter
 
         public override string ToString()
         {
-            return string.Format("({0}, {1})", type.ToString(), value);
+            return "({0}, {1})".Format(type.ToString(), value);
         }
 
         public static Type GetType<T>()
@@ -371,7 +371,7 @@ namespace mima_c.interpreter
                     parameters.Add(param.Walk(scope).GetUnderlyingValue_DoNotCallThisMethodUnderAnyCircumstances());
 
                 // TODO this wont work with the passed parameters, C# doesnt have parameter unpacking
-                string ouput = string.Format(parameters[0].ToString(), parameters);
+                string ouput = parameters[0].ToString().Format(parameters);
                 Console.WriteLine("printf: \"" + ouput + "\"");
             }
             throw new NotImplementedException();

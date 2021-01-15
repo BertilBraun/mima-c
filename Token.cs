@@ -81,7 +81,7 @@ namespace mima_c
         public override string ToString()
         {
             if (value != null)
-                return string.Format("{0}({1})", tokenType.ToString().Replace("TokenType.", ""), value.ToString());
+                return "{0}({1})".Format(tokenType.ToString().Replace("TokenType.", ""), value.ToString());
             else
                 return tokenType.ToString().Replace("TokenType.", "");
         }
@@ -102,7 +102,7 @@ namespace mima_c
 
             if (nextToken.tokenType != expectedTokenType)
             {
-                Console.WriteLine(string.Format("{0}: Tried to eat: {1} but has: {2}", nextToken.pos, expectedTokenType, nextToken.tokenType));
+                Console.WriteLine("{0}: Tried to eat: {1} but has: {2}".Format(nextToken.pos, expectedTokenType, nextToken.tokenType));
                 Console.WriteLine("Leftover Tokenstream:");
                 Console.WriteLine(tokens.ToString());
                 Environment.Exit(1);
