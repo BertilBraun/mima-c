@@ -66,12 +66,12 @@ namespace mima_c
     {
         public Pos pos { get; }
         public TokenType tokenType { get; }
-        public object value { get; set; }
+        public string value { get; set; }
 
         public Token() : this(TokenType.EOS)
         {
         }
-        public Token(TokenType tokenType, Pos pos = null, object value = null)
+        public Token(TokenType tokenType, Pos pos = null, string value = null)
         {
             this.tokenType = tokenType;
             this.pos = pos;
@@ -89,14 +89,14 @@ namespace mima_c
 
     internal class TokenStream
     {
-        private List<Token> tokens { get; set; }
+        public List<Token> tokens { get; set; }
 
         public TokenStream(List<Token> tokens)
         {
             this.tokens = tokens;
         }
 
-        Token eat(TokenType expectedTokenType)
+        public Token eat(TokenType expectedTokenType)
         {
             Token nextToken = tokens.FirstOrDefault();
 
@@ -112,7 +112,7 @@ namespace mima_c
             return nextToken;
         }
 
-        Token peek(int n = 0)
+        public Token peek(int n = 0)
         {
             return tokens.Count <= n ? new Token() : tokens[n];
         }
