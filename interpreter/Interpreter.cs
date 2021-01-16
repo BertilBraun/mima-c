@@ -269,8 +269,10 @@ namespace mima_c.interpreter
                 foreach (var param in node.parameters)
                     parameters.Add(Walk(param, scope).GetUnderlyingValue_DoNotCallThisMethodUnderAnyCircumstances());
 
-                // TODO this wont work with the passed parameters, C# doesnt have parameter unpacking
-                string ouput = parameters[0].ToString().Format(parameters);
+                string formatString = parameters[0].ToString();
+                parameters.RemoveAt(0);
+
+                string ouput = formatString.Format(parameters.ToArray());
                 Console.WriteLine("printf: \"" + ouput + "\"");
             }
             return RuntimeType.Void();
