@@ -93,6 +93,8 @@ namespace mima_c.interpreter
         {
             this.name = name;
             this.parameters = new List<FunctionParam>(argumentCount);
+            for (int i = 0; i < argumentCount; i++)
+                parameters.Add(null);
         }
         public FunctionSignature(string name, List<FunctionParam> parameters)
         {

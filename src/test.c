@@ -17,10 +17,12 @@ int fac(int n) {
 }
 
 
-int a, b[1];
+// int a, b[1];
 
+// This was the first goal,
+// to be able to properly run this function
 int fibbonachi(int n) {
-    int f[5] = { 1, 1 + fibbonachi(5) };
+    // int f[5] = { 1, 1 + fibbonachi(5) };
     int a = 0, b = 1;
     for (int i = 0; i < n; i = i + 1) {
         int c = b;
@@ -30,8 +32,9 @@ int fibbonachi(int n) {
     return a;
 }
 
-// TODO: Make this the first goal,
-//       to be able to properly run this function
+void test(int a, int b, int c) {
+    printf("{0}, {1}", "Test", "1");
+}
 
 
 int main() {
@@ -40,8 +43,9 @@ int main() {
             continue;
         if (i == 17)
             break;
-        printf("{}", fibbonachi(i));
+        printf(fibbonachi(i));
     }
+    test(1, 2, 3);
     printf("Done");
     return 0;
 }

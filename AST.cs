@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mima_c.interpreter;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -214,6 +215,11 @@ namespace mima_c
                     this.type = type;
                     this.identifier = identifier;
                 }
+
+                public override string ToString()
+                {
+                    return "{0} {1}".Format(type, identifier);
+                }
             }
 
             public string returnType  { get; }
@@ -227,7 +233,7 @@ namespace mima_c
                 this.parameters = parameters;
             }
 
-            protected override object _value => string.Format("{0} {1}({2})", returnType, identifier, parameters);
+            protected override object _value => string.Format("{0} {1}({2})", returnType, identifier, parameters.FormatList());
         }
 
         class FuncDef : FuncDecl
