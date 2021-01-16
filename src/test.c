@@ -33,7 +33,7 @@ int fibbonachi(int n) {
 }
 
 void test(int a, int b, int c) {
-    printf("{0}, {1}", "Test", "1");
+    printf("{0}, {1}, {2}", a, b, c);
 }
 
 

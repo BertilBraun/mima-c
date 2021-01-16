@@ -64,12 +64,12 @@ namespace mima_c.interpreter
                 {Operator.Code.DIVIDE,   (int x, int y) => new RuntimeType(x / y) },
                 {Operator.Code.MULTIPLY, (int x, int y) => new RuntimeType(x * y) },
                 {Operator.Code.MODULO,   (int x, int y) => new RuntimeType(x % y) },
-                {Operator.Code.LT,       (int x, int y) => new RuntimeType(RuntimeType.Type.Bool, (x < y)) },
-                {Operator.Code.GT,       (int x, int y) => new RuntimeType(RuntimeType.Type.Bool, (x > y)) },
-                {Operator.Code.GEQ,      (int x, int y) => new RuntimeType(RuntimeType.Type.Bool, (x >= y)) },
-                {Operator.Code.LEQ,      (int x, int y) => new RuntimeType(RuntimeType.Type.Bool, (x <= y)) },
-                {Operator.Code.EQ,       (int x, int y) => new RuntimeType(RuntimeType.Type.Bool, (x == y)) },
-                {Operator.Code.NEQ,      (int x, int y) => new RuntimeType(RuntimeType.Type.Bool, (x != y)) },
+                {Operator.Code.LT,       (int x, int y) => new RuntimeType((x < y) ? 1 : 0) },
+                {Operator.Code.GT,       (int x, int y) => new RuntimeType((x > y) ? 1 : 0) },
+                {Operator.Code.GEQ,      (int x, int y) => new RuntimeType((x >= y) ? 1 : 0) },
+                {Operator.Code.LEQ,      (int x, int y) => new RuntimeType((x <= y) ? 1 : 0) },
+                {Operator.Code.EQ,       (int x, int y) => new RuntimeType((x == y) ? 1 : 0) },
+                {Operator.Code.NEQ,      (int x, int y) => new RuntimeType((x != y) ? 1 : 0) },
             };
         public static RuntimeType Walk(BinaryArithm node, Scope scope)
         {
@@ -201,7 +201,7 @@ namespace mima_c.interpreter
             Scope blockScope = new Scope(scope);
 
             Walk(node.initialization, blockScope);
-            while (Walk(node.condition, blockScope).Get<bool>())
+            while (Walk(node.condition, blockScope).Get<int>() != 0)
             {
                 try
                 {
@@ -222,7 +222,7 @@ namespace mima_c.interpreter
         }
         public static RuntimeType Walk(While node, Scope scope)
         {
-            while (Walk(node.condition, scope).Get<bool>())
+            while (Walk(node.condition, scope).Get<int>() != 0)
                 try
                 {
                     Walk(node.body, scope);
@@ -239,7 +239,7 @@ namespace mima_c.interpreter
         }
         public static RuntimeType Walk(If node, Scope scope)
         {
-            if (Walk(node.condition, scope).Get<bool>())
+            if (Walk(node.condition, scope).Get<int>() != 0)
                 Walk(node.ifBody, scope);
             else
                 Walk(node.elseBody, scope);
@@ -298,7 +298,6 @@ namespace mima_c.interpreter
         {
             Int,
             String,
-            Bool,
             Char,
             Float,
             Double,
@@ -308,7 +307,7 @@ namespace mima_c.interpreter
         }
 
         public Type type { get; }
-        private object value;
+        private dynamic value;
 
         public RuntimeType(int value)
         {
@@ -325,10 +324,8 @@ namespace mima_c.interpreter
         public T Get<T>()
         {
             if (type == Type.Int && typeof(T) == typeof(int))
-                return (T)value;
+                return value;
 
-            if (type == Type.Bool && typeof(T) == typeof(bool))
-                return (T)value;
 
             throw new InvalidCastException();
         }
@@ -362,7 +359,6 @@ namespace mima_c.interpreter
         }
 
     }
-
 
     class BreakExc : Exception
     {
