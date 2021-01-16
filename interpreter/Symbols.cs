@@ -6,18 +6,14 @@ using System.Text;
 
 namespace mima_c.interpreter
 {
-    class Value
-    {
-
-    }
-    class Function : Value
+    class Function : RuntimeType
     {
         public string returnType { get; }
 
         public BlockStatements body { get; private set; }
         public List<FuncDecl.Parameter> parameters { get; private set; }
 
-        public Function(string returnType)
+        public Function(string returnType) : base(Type.Function, null)
         {
             this.returnType = returnType;
         }
@@ -29,48 +25,49 @@ namespace mima_c.interpreter
         }
     }
 
-    class Variable : Value
+    class Variable : RuntimeType
     {
-        public RuntimeType value { get; set; }
-
-        public Variable(RuntimeType.Type type)
+        public Variable(Type type) : base(type, null, true)
         {
             // Set compiler default value based on type?
-            this.value = new RuntimeType(type, null);
         }
-        public Variable(RuntimeType value)
+        public Variable(RuntimeType value) : base(value.type, true)
         {
             // Set compiler default value based on type?
-            this.value = value;
-        }
-
-        public override string ToString()
-        {
-            return value.ToString();
+            this.value.Set(value);
         }
     }
 
-    class Array : Value
+    class Array : RuntimeType
     {
-        public RuntimeType[] values { get; set; }
+        public RuntimeType[] Values
+        {
+            get { return Get<RuntimeType[]>(); }
+            set
+            {
+                this.value = value;
+                foreach (var val in this.Values)
+                    val.MakeAssignable();
+            }
+        }
 
-        public Array(RuntimeType.Type type, int size)
+        public Array(Type type, int size) : base(Type.Array, null, true)
         {
             // Set compiler default value based on type?
             List<RuntimeType> values = new List<RuntimeType>(size);
             for (int i = 0; i < size; i++)
-                values.Add(new RuntimeType(type, null));
-            
-            this.values = values.ToArray();
+                values.Add(new RuntimeType(type, null, true));
+
+            this.Values = values.ToArray();
         }
-        public Array(RuntimeType[] values)
+        public Array(RuntimeType[] values) : base(Type.Array, null, true)
         {
-            this.values = values;
+            this.Values = values;
         }
 
         public override string ToString()
         {
-            return "[" + values.ToList().FormatList() + "]";
+            return "[" + Values.ToList().FormatList() + "]";
         }
     }
 

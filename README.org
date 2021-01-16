@@ -10,7 +10,7 @@
 - [X] return
 - [X] break
 - [X] continue
-- [ ] Arrays
+- [X] Arrays
 - [X] Relations
 - [X] Stringliterals
 - [X] Charliterals
@@ -78,7 +78,7 @@
 #+begin_src
 expr           -> assignment
 ;; this is ok to do recursively because it is right associative
-assignment     -> IDENTIFIER EQUALS assigmnet | p7
+assignment     -> p7 (EQUALS assigmnet)*
 p7             -> (p6 (EQUAL | NEQ))* p6
 p6             -> (p4 (LT | GT | GEQ | LEQ)* p4)
 p4             -> (p3 (PLUS | MINUS))* p3
@@ -87,11 +87,9 @@ unary          -> MINUS value | value
 value          -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER | arraylit | arrayaccess
 functioncall   -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 arrayaccess    -> IDENTIFIER LBRACKET expr RBRACKET
-arraylit -> LBRACE (expr)? (, expr)* RBRACE
+arraylit       -> LBRACE (expr)? (, expr)* RBRACE
 #+end_src
 
-#+begin_src
-#+end_src
 
 #+begin_src
 blockstatement -> ((vardecl | expr)? SEMICOLON | block | for | while | if | return | break | continue | instrinsic)
@@ -110,7 +108,8 @@ program        -> (statement)*
 statement      -> ((vardecl | funcdecl)? SEMICOLON)
 vardecl        -> IDENTIFIER vardecl' (, vardecl')*
 vardecl'       -> IDENTIFIER (LBRACKET (expr)? RBRACKET)? (= expr)?
-funcdecl       -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | IDENTIFIER IDENTIFIER (COMMA IDENTIFIER IDENTIFIER)* RPAREN) ( SEMICOLON | block)
+funcdecl       -> IDENTIFIER IDENTIFIER LPAREN (RPAREN | funcdecl' (COMMA funcdecl')* RPAREN) ( SEMICOLON | block)
+funcdecl'      -> IDENTIFIER IDENTIFIER (LBRACKET RBRACKET)?
 #+end_src
 
 

@@ -54,8 +54,11 @@ int test() {
 }
 
 int main() {
-    int f[4] = { 1, test(), 3, 4 };
-    for (int i = 0; i < 4; i = i + 1) {
+    int f[5] = { 1, test(), 3, 4, 5 };
+    for (int i = 0; i < 5; i = i + 1) {
+        f[i] = f[i] + 1;
+    }
+    for (int i = 0; i < 5; i = i + 1) {
         printf(f[i]);
     }
     printf("Done");

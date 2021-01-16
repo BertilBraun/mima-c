@@ -149,16 +149,16 @@ namespace mima_c
             if (PeekEatIf(TokenType.LBRACKET))
             {
                 if (PeekType(TokenType.RBRACKET))
-                    statements.Add(new ArrayDecl(varType + "[]", identifier, null));
+                    statements.Add(new ArrayDecl(varType, identifier, null));
                 else
-                    statements.Add(new ArrayDecl(varType + "[]", identifier, expr()));
+                    statements.Add(new ArrayDecl(varType, identifier, expr()));
                 Eat(TokenType.RBRACKET);
             }
             else
                 statements.Add(new VariableDecl(varType, identifier));
-
+            
             if (PeekEatIf(TokenType.ASSIGN))
-                statements.Add(new VariableAssign(identifier, expr()));
+                statements.Add(new VariableAssign(new Variable(identifier), expr()));
         }
 
         // one extra level of recursion so it's easy to extend expr
@@ -169,14 +169,21 @@ namespace mima_c
 
         private AST assignment()
         {
-            if (PeekType(TokenType.IDENTIFIER) && PeekType(TokenType.ASSIGN, 1))
-            {
-                string identifier = EatV(TokenType.IDENTIFIER);
-                Eat(TokenType.ASSIGN);
-                return new VariableAssign(identifier, assignment());
-            }
+            AST node = p7();
 
-            return p7();
+            if (PeekEatIf(TokenType.ASSIGN))
+                node = new VariableAssign(node, assignment());
+
+            return node;
+
+            // if (PeekType(TokenType.IDENTIFIER) && PeekType(TokenType.ASSIGN, 1))
+            // {
+            //     string identifier = EatV(TokenType.IDENTIFIER);
+            //     Eat(TokenType.ASSIGN);
+            //     return new VariableAssign(identifier, assignment());
+            // }
+            // 
+            // return p7();
         }
 
         private AST p7()

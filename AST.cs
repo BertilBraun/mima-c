@@ -175,10 +175,10 @@ namespace mima_c
 
         class VariableAssign : AST
         {
-            public string identifier  { get; }
+            public dynamic identifier  { get; }
             public dynamic node  { get; }
 
-            public VariableAssign(string identifier, AST node)
+            public VariableAssign(AST identifier, AST node)
             {
                 this.identifier = identifier;
                 this.node = node;

@@ -9,15 +9,15 @@ namespace mima_c.interpreter
     {
         Scope parent;
 
-        Dictionary<Signature, Value> translation;
+        Dictionary<Signature, RuntimeType> translation;
 
         public Scope(Scope parent)
         {
             this.parent = parent;
-            this.translation = new Dictionary<Signature, Value>();
+            this.translation = new Dictionary<Signature, RuntimeType>();
         }
 
-        public Value Translate(Signature symbol)
+        public RuntimeType Translate(Signature symbol)
         {
             if (translation.ContainsKey(symbol))
                 return translation[symbol];
@@ -29,7 +29,7 @@ namespace mima_c.interpreter
             return null;
         }
 
-        public bool AddSymbol(Signature symbol, Value value)
+        public bool AddSymbol(Signature symbol, RuntimeType value)
         {
             if (translation.ContainsKey(symbol))
             {

@@ -69,6 +69,9 @@ namespace mima_c.interpreter
                 {Operator.Code.LEQ,      (int x, int y) => new RuntimeType((x <= y) ? 1 : 0) },
                 {Operator.Code.EQ,       (int x, int y) => new RuntimeType((x == y) ? 1 : 0) },
                 {Operator.Code.NEQ,      (int x, int y) => new RuntimeType((x != y) ? 1 : 0) },
+                // TODO string, char with these operators
+                // {Operator.Code.EQ,       (int x, int y) => new RuntimeType((x == y) ? 1 : 0) },
+                // {Operator.Code.NEQ,      (int x, int y) => new RuntimeType((x != y) ? 1 : 0) },
             };
         public static RuntimeType Walk(BinaryArithm node, Scope scope)
         {
@@ -96,8 +99,11 @@ namespace mima_c.interpreter
             VariableSignature variableSignature = new VariableSignature(node.identifier);
 
             // TODO is an assumption, could also be a function
-            Variable variable = scope.Translate(variableSignature) as Variable;
-            return variable.value;
+            RuntimeType variable = scope.Translate(variableSignature);
+            if (variable.type == RuntimeType.Type.Function)
+                throw new ArgumentException("Signature is of type Function: " + node.identifier);
+
+            return variable;
         }
         public static RuntimeType Walk(VariableDecl node, Scope scope)
         {
@@ -109,26 +115,10 @@ namespace mima_c.interpreter
         }
         public static RuntimeType Walk(VariableAssign node, Scope scope)
         {
-            Value variable = scope.Translate(new VariableSignature(node.identifier));
+            RuntimeType val = Walk(node.identifier, scope);
             RuntimeType value = Walk(node.node, scope);
+            val.Set(value);
 
-            if (variable is Variable)
-            {
-                (variable as Variable).value = value;
-            }
-            else if (variable is Array)
-            {
-                Array array = variable as Array;
-                RuntimeType[] values = value.Get<Array>().values;
-                if (array.values.Length != values.Length)
-                    throw new ArgumentException("Assignment with different Length not supported!");
-                array.values = values;
-            }
-            else
-            {
-                // This is a unsupported assignment
-                throw new ArgumentException("This is a unsupported assignment: " + node.identifier);
-            }
             return value;
         }
         public static RuntimeType Walk(FuncCall node, Scope scope)
@@ -147,8 +137,8 @@ namespace mima_c.interpreter
                 VariableSignature variableSignature = new VariableSignature(parameter.identifier);
                 Variable variable = new Variable(Walk(argument, scope));
 
-                if (variable.value.type != RuntimeType.GetTypeFromString(parameter.type))
-                    throw new InvalidCastException("Type missmatch between: " + variable.value.type.ToString() + " and " + parameter.type);
+                if (variable.type != RuntimeType.GetTypeFromString(parameter.type))
+                    throw new InvalidCastException("Type missmatch between: " + variable.type.ToString() + " and " + parameter.type);
 
                 copyScope.AddSymbol(variableSignature, variable);
             }
@@ -273,7 +263,9 @@ namespace mima_c.interpreter
         }
         public static RuntimeType Walk(Return node, Scope scope)
         {
-            throw new ReturnExc(Walk(node.returnExpr, scope));
+            RuntimeType ret = Walk(node.returnExpr, scope);
+            ret.MakeUnAssignable();
+            throw new ReturnExc(ret);
         }
         public static RuntimeType Walk(Intrinsic node, Scope scope)
         {
@@ -310,15 +302,18 @@ namespace mima_c.interpreter
         public static RuntimeType Walk(ArrayAccess node, Scope scope)
         {
             VariableSignature variableSignature = new VariableSignature(node.identifier);
+            Array variable = scope.Translate(variableSignature) as Array;
+
+            if (variable == null)
+                throw new TypeAccessException("Variable was not of type Array: " + node.identifier);
 
             // TODO is an assumption, could also be a function
-            Array variable = scope.Translate(variableSignature) as Array;
             int index = Walk(node.indexExpr, scope).Get<int>();
 
-            if (index < 0 || index >= variable.values.Length)
+            if (index < 0 || index >= variable.Values.Length)
                 throw new IndexOutOfRangeException("Array index out of Range: " + index);
 
-            return variable.values[index];
+            return variable.Values[index];
         }
         public static RuntimeType Walk(ArrayLiteral node, Scope scope)
         {
@@ -326,13 +321,11 @@ namespace mima_c.interpreter
             foreach (var expr in node.valueListExprs)
                 values.Add(Walk(expr, scope));
 
-            Array variable = new Array(values.ToArray());
-
-            return new RuntimeType(RuntimeType.Type.Array, variable);
+            return new Array(values.ToArray());
         }
     }
 
-    class RuntimeType
+    public class RuntimeType
     {
         public enum Type
         {
@@ -342,15 +335,17 @@ namespace mima_c.interpreter
             Float,
             Double,
             Void,
-            Function,
             Custom,
 
             Array,
             Pointer,
+            Function,
         }
 
         public Type type { get; }
-        private dynamic value;
+        protected dynamic value;
+
+        protected bool assignable = false;
 
         public RuntimeType(int value)
         {
@@ -364,6 +359,20 @@ namespace mima_c.interpreter
             this.value = value;
         }
 
+        public RuntimeType(Type type, dynamic value, bool assignable)
+        {
+            this.type = type;
+            this.value = value;
+            this.assignable = assignable;
+        }
+
+        public void Set(RuntimeType data)
+        {
+            if (!assignable || data.type != this.type)
+                throw new AccessViolationException();
+            this.value = data.value;
+        }
+
         public T Get<T>()
         {
             if (type == Type.Int && typeof(T) == typeof(int))
@@ -372,6 +381,8 @@ namespace mima_c.interpreter
             if (type == Type.Array)
                 return value;
             if (type == Type.Pointer)
+                return value;
+            if (type == Type.Function)
                 return value;
 
             throw new InvalidCastException();
@@ -398,6 +409,7 @@ namespace mima_c.interpreter
             if (s == "void")
                 return Type.Void;
 
+            Debug.Assert(false);
             return Type.Custom;
         }
         public static RuntimeType Void()
@@ -405,6 +417,15 @@ namespace mima_c.interpreter
             return new RuntimeType(Type.Void, null);
         }
 
+        internal void MakeUnAssignable()
+        {
+            assignable = false;
+        }
+
+        internal void MakeAssignable()
+        {
+            assignable = true;
+        }
     }
 
     class BreakExc : Exception
