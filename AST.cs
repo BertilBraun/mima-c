@@ -1,11 +1,12 @@
-﻿using System;
+﻿using mima_c.interpreter;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
 namespace mima_c
 {
-    using ASTList = List<ast.AST>;
+    using ASTList = List<dynamic>;
 
     namespace ast
     {
@@ -102,8 +103,8 @@ namespace mima_c
 
         class BinaryArithm : AST
         {
-            public AST leftNode  { get; }
-            public AST rightNode  { get; }
+            public dynamic leftNode  { get; }
+            public dynamic rightNode  { get; }
             public Operator.Code op  { get; }
 
             public BinaryArithm(Operator.Code op, AST leftNode, AST rightNode)
@@ -119,7 +120,7 @@ namespace mima_c
 
         class UnaryArithm : AST
         {
-            public AST node  { get; }
+            public dynamic node  { get; }
             public Operator.Code op  { get; }
 
             public UnaryArithm(Operator.Code op, AST node)
@@ -162,7 +163,7 @@ namespace mima_c
 
         class ArrayDecl : VariableDecl
         {
-            public AST countExpr  { get; }
+            public dynamic countExpr  { get; }
 
             public ArrayDecl(string type, string identifier, AST countExpr) : base(type, identifier)
             {
@@ -175,7 +176,7 @@ namespace mima_c
         class VariableAssign : AST
         {
             public string identifier  { get; }
-            public AST node  { get; }
+            public dynamic node  { get; }
 
             public VariableAssign(string identifier, AST node)
             {
@@ -214,6 +215,11 @@ namespace mima_c
                     this.type = type;
                     this.identifier = identifier;
                 }
+
+                public override string ToString()
+                {
+                    return "{0} {1}".Format(type, identifier);
+                }
             }
 
             public string returnType  { get; }
@@ -246,7 +252,7 @@ namespace mima_c
         class ArrayAccess : AST
         {
             public string identifier  { get; }
-            public AST indexExpr  { get; }
+            public dynamic indexExpr  { get; }
 
             public ArrayAccess(string identifier, AST indexExpr)
             {
@@ -298,10 +304,10 @@ namespace mima_c
 
         class For : AST
         {
-            public AST initialization  { get; }
-            public AST condition  { get; }
-            public AST loopExecution  { get; }
-            public AST body  { get; }
+            public dynamic initialization  { get; }
+            public dynamic condition  { get; }
+            public dynamic loopExecution  { get; }
+            public dynamic body  { get; }
 
             public For(AST initialization, AST condition, AST loopExecution, AST body)
             {
@@ -316,8 +322,8 @@ namespace mima_c
 
         class While : AST
         {
-            public AST condition  { get; }
-            public AST body  { get; }
+            public dynamic condition  { get; }
+            public dynamic body  { get; }
 
             public While(AST condition, AST body)
             {
@@ -330,9 +336,9 @@ namespace mima_c
 
         class If : AST
         {
-            public AST condition  { get; }
-            public AST ifBody  { get; }
-            public AST elseBody  { get; }
+            public dynamic condition  { get; }
+            public dynamic ifBody  { get; }
+            public dynamic elseBody  { get; }
 
             public If(AST condition, AST ifBody, AST elseBody)
             {
@@ -356,7 +362,7 @@ namespace mima_c
 
         class Return : AST
         {
-            public AST returnExpr { get; }
+            public dynamic returnExpr { get; }
 
             public Return(AST returnExpr)
             {

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace mima_c
 {
-    using ASTList = List<AST>;
+    using ASTList = List<dynamic>;
 
     abstract class Parser
     {
