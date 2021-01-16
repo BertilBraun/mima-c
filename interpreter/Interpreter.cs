@@ -152,17 +152,17 @@ namespace mima_c.interpreter
                 return r.returnValue;
             }
 
-            if (function.returnType != "void")
+            if (function.returnType != RuntimeType.Type.Void)
                 throw new InvalidOperationException("Missing return Statement");
             return RuntimeType.Void();
         }
         public static RuntimeType Walk(FuncDecl node, Scope scope)
         {
-            Function function = new Function(node.returnType);
+            Function function = new Function(node.returnType.GetRuntimeType());
 
             List<FunctionParam> parameteres = new List<FunctionParam>();
             foreach (var param in node.parameters)
-                parameteres.Add(new FunctionParam(RuntimeType.GetTypeFromString(param.type), param.identifier));
+                parameteres.Add(new FunctionParam(param.type.GetRuntimeType(), param.identifier));
 
             FunctionSignature signature = new FunctionSignature(node.identifier, parameteres);
 
@@ -173,7 +173,7 @@ namespace mima_c.interpreter
         {
             List<FunctionParam> parameteres = new List<FunctionParam>();
             foreach (var param in node.parameters)
-                parameteres.Add(new FunctionParam(RuntimeType.GetTypeFromString(param.type), param.identifier));
+                parameteres.Add(new FunctionParam(param.type.GetRuntimeType(), param.identifier));
 
             FunctionSignature signature = new FunctionSignature(node.identifier, parameteres);
 
@@ -323,127 +323,35 @@ namespace mima_c.interpreter
 
             return new Array(values.ToArray());
         }
-    }
 
-    public class RuntimeType
-    {
-        public enum Type
+        public static RuntimeType Walk(PointerDecl node, Scope scope)
         {
-            Int,
-            String,
-            Char,
-            Float,
-            Double,
-            Void,
-            Custom,
-
-            Array,
-            Pointer,
-            Function,
+            throw new NotImplementedException();
+            // Pointer pointer = new Pointer();
+            // Array variable = new Array(RuntimeType.GetTypeFromString(node.type), size);
+            // VariableSignature variableSignature = new VariableSignature(node.identifier);
+            // scope.AddSymbol(variableSignature, variable);
+            // 
+            // return RuntimeType.Void();
         }
 
-        public Type type { get; }
-        protected dynamic value;
 
-        protected bool assignable = false;
-
-        public RuntimeType(int value)
+        class BreakExc : Exception
         {
-            this.type = Type.Int;
-            this.value = value;
         }
 
-        public RuntimeType(Type type, object value)
+        class ContinueExc : Exception
         {
-            this.type = type;
-            this.value = value;
         }
 
-        public RuntimeType(Type type, dynamic value, bool assignable)
+        class ReturnExc : Exception
         {
-            this.type = type;
-            this.value = value;
-            this.assignable = assignable;
-        }
+            public RuntimeType returnValue { get; }
 
-        public void Set(RuntimeType data)
-        {
-            if (!assignable || data.type != this.type)
-                throw new AccessViolationException();
-            this.value = data.value;
-        }
-
-        public T Get<T>()
-        {
-            if (type == Type.Int && typeof(T) == typeof(int))
-                return value;
-
-            if (type == Type.Array)
-                return value;
-            if (type == Type.Pointer)
-                return value;
-            if (type == Type.Function)
-                return value;
-
-            throw new InvalidCastException();
-        }
-
-        public object GetUnderlyingValue_DoNotCallThisMethodUnderAnyCircumstances()
-        {
-            return value;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("({0}, {1})", type.ToString(), value);
-        }
-
-        public static Type GetType<T>()
-        {
-            return GetTypeFromString(typeof(T).Name);
-        }
-        public static Type GetTypeFromString(string s)
-        {
-            if (s == "int")
-                return Type.Int;
-            if (s == "void")
-                return Type.Void;
-
-            Debug.Assert(false);
-            return Type.Custom;
-        }
-        public static RuntimeType Void()
-        {
-            return new RuntimeType(Type.Void, null);
-        }
-
-        internal void MakeUnAssignable()
-        {
-            assignable = false;
-        }
-
-        internal void MakeAssignable()
-        {
-            assignable = true;
+            public ReturnExc(RuntimeType returnValue)
+            {
+                this.returnValue = returnValue;
+            }
         }
     }
-
-    class BreakExc : Exception
-    {
-    }
-
-    class ContinueExc : Exception
-    {
-    }
-
-    class ReturnExc : Exception
-    {
-        public RuntimeType returnValue { get; }
-
-        public ReturnExc(RuntimeType returnValue)
-        {
-            this.returnValue = returnValue;
-        }
-    }
-
 }

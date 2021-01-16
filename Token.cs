@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace mima_c
 {
     enum TokenType
     {
+        UNDEFINED,
+
         EOS,
         BOS,
 
@@ -15,7 +18,7 @@ namespace mima_c
         PLUS,
         MINUS,
         DIVIDE,
-        MULTIPLY,
+        STAR,
         MODULO,
         IDENTIFIER,
         SEMICOLON,
@@ -41,8 +44,22 @@ namespace mima_c
         CONTINUE,
         LBRACKET,
         RBRACKET,
-
-        UNDEFINED
+        AMPERSAND,
+        PLUSPLUS,
+        MINUSMINUS,
+        QUESTIONMARK,
+        COLON,
+        AND,
+        OR,
+        DOT,
+        ARROW,
+        NOT,
+        LNOT,
+        DIVIDEEQ,
+        MODULOEQ,
+        STAREQ,
+        MINUSEQ,
+        PLUSEQ,
     }
 
     internal class Pos
@@ -104,7 +121,8 @@ namespace mima_c
             {
                 Console.WriteLine("{0}: Tried to eat: {1} but has: {2}".Format(nextToken.pos, expectedTokenType, nextToken.tokenType));
                 Console.WriteLine("Leftover Tokenstream:");
-                Console.WriteLine(tokens.ToString());
+                Console.WriteLine(ToString());
+                Debug.Assert(false);
                 Environment.Exit(1);
             }
 
@@ -119,7 +137,7 @@ namespace mima_c
 
         public override string ToString()
         {
-            return "[" + string.Join(",", tokens) + "]";
+            return "[" + tokens.FormatList() + "]";
         }
     }
 }

@@ -6,6 +6,11 @@ namespace mima_c
 {
     static class Util
     {
+        public static interpreter.RuntimeType.Type GetRuntimeType(this string s)
+        {
+            return interpreter.RuntimeType.GetTypeFromString(s);
+        }
+
         public static string Format(this string s, params object[] args)
         {
             return string.Format(s, args);

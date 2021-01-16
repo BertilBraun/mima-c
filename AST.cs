@@ -68,14 +68,24 @@ namespace mima_c
                 {TokenType.PLUS,     Code.PLUS        },
                 {TokenType.MINUS,    Code.MINUS         },
                 {TokenType.DIVIDE,   Code.DIVIDE          },
-                {TokenType.MULTIPLY, Code.MULTIPLY            },
+                {TokenType.STAR,   Code.MULTIPLY            },
                 {TokenType.MODULO,   Code.MODULO          },
+
                 {TokenType.LT,       Code.LT      },
                 {TokenType.GT,       Code.GT      },
                 {TokenType.GEQ,      Code.GEQ       },
                 {TokenType.LEQ,      Code.LEQ       },
                 {TokenType.EQ,       Code.EQ      },
-                {TokenType.NEQ,      Code.NEQ       },
+                {TokenType.NEQ,      Code.NEQ},
+
+                {TokenType.AND,      Code.AND},
+                {TokenType.OR,       Code.OR},
+
+                {TokenType.DIVIDEEQ, Code.DIVIDEEQ},
+                {TokenType.MODULOEQ, Code.MODULOEQ},
+                {TokenType.STAREQ,   Code.STAREQ},
+                {TokenType.MINUSEQ,  Code.MINUSEQ},
+                {TokenType.PLUSEQ,   Code.PLUSEQ},
             };
 
             public static Code Parse(TokenType type)
@@ -92,12 +102,22 @@ namespace mima_c
                 DIVIDE,
                 MULTIPLY,
                 MODULO,
+
                 LT,
                 GT,
                 GEQ,
                 LEQ,
                 EQ,
                 NEQ,
+
+                AND,
+                OR,
+
+                DIVIDEEQ,
+                MODULOEQ,
+                STAREQ,
+                MINUSEQ,
+                PLUSEQ,
             }
         }
 
@@ -173,6 +193,48 @@ namespace mima_c
             protected override ASTList _children => new ASTList { countExpr };
         }
 
+        class PointerDecl : VariableDecl
+        {
+            public dynamic decl { get; }
+
+            public PointerDecl(AST decl, string identifier) : base("pointer", identifier)
+            {
+                this.decl = decl;
+            }
+        }
+
+        class PointerAccess : AST
+        {
+            public dynamic node { get; }
+
+            public PointerAccess(AST node)
+            {
+                this.node = node;
+            }
+        }
+
+        class PointerLiteral : AST
+        {
+            public dynamic node { get; }
+
+            public PointerLiteral(AST node)
+            {
+                this.node = node;
+            }
+        }
+
+        class StructAccess : AST
+        {
+            public TokenType operation { get; }
+            public dynamic node { get; }
+
+            public StructAccess(TokenType operation, AST node)
+            {
+                this.operation = operation;
+                this.node = node;
+            }
+        }
+
         class VariableAssign : AST
         {
             public dynamic identifier  { get; }
@@ -186,6 +248,50 @@ namespace mima_c
 
             protected override object _value => identifier;
             protected override ASTList _children => new ASTList { node };
+        }
+
+        class OperationAssign : AST
+        {
+            public dynamic identifier { get; }
+            public dynamic node { get; }
+            public Operator.Code op { get; }
+
+            public OperationAssign(AST identifier, Operator.Code op, AST node)
+            {
+                this.identifier = identifier;
+                this.node = node;
+                this.op = op;
+            }
+
+            protected override object _value => identifier;
+            protected override ASTList _children => new ASTList { node };
+            protected override string _nodeName => op.ToString();
+        }
+
+        class Ternary : AST
+        {
+            public dynamic condition { get; }
+            public dynamic ifBlock { get; }
+            public dynamic elseBlock { get; }
+
+            public Ternary(AST condition, AST ifBlock, AST elseBlock)
+            {
+                this.condition = condition;
+                this.ifBlock = ifBlock;
+                this.elseBlock = elseBlock;
+            }
+        }
+
+        class PostfixArithm : AST
+        {
+            private Operator.Code operation { get; }
+            private dynamic node { get; }
+
+            public PostfixArithm(Operator.Code operation, AST node)
+            {
+                this.operation = operation;
+                this.node = node;
+            }
         }
 
         class FuncCall : AST
@@ -370,6 +476,18 @@ namespace mima_c
             }
 
             protected override ASTList _children => new ASTList { returnExpr };
+        }
+
+        class Cast : AST
+        {
+            public string castType { get; }
+            public dynamic node { get; }
+
+            public Cast(string castType, AST node)
+            {
+                this.castType = castType;
+                this.node = node;
+            }
         }
 
         class Intrinsic : AST

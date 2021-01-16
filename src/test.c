@@ -55,7 +55,9 @@ int test() {
 
 int main() {
     int f[5] = { 1, test(), 3, 4, 5 };
-    for (int i = 0; i < 5; i = i + 1) {
+    for (int i = 0; i != 5; i += 1) {
+        if (i == 0 && 1 == 1 || 2 - 2 == 0)
+            printf("Jay");
         f[i] = f[i] + 1;
     }
     for (int i = 0; i < 5; i = i + 1) {
