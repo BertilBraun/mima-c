@@ -233,7 +233,7 @@ namespace mima_c
                 this.parameters = parameters;
             }
 
-            protected override object _value => "{0} {1}({2})".Format(returnType, identifier, parameters);
+            protected override object _value => "{0} {1}({2})".Format(returnType, identifier, parameters.FormatList());
         }
 
         class FuncDef : FuncDecl

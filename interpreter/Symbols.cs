@@ -1,6 +1,7 @@
 ﻿using mima_c.ast;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace mima_c.interpreter
@@ -46,6 +47,30 @@ namespace mima_c.interpreter
         public override string ToString()
         {
             return value.ToString();
+        }
+    }
+
+    class Array : Value
+    {
+        public RuntimeType[] values { get; set; }
+
+        public Array(RuntimeType.Type type, int size)
+        {
+            // Set compiler default value based on type?
+            List<RuntimeType> values = new List<RuntimeType>(size);
+            for (int i = 0; i < size; i++)
+                values.Add(new RuntimeType(type, null));
+            
+            this.values = values.ToArray();
+        }
+        public Array(RuntimeType[] values)
+        {
+            this.values = values;
+        }
+
+        public override string ToString()
+        {
+            return "[" + values.ToList().FormatList() + "]";
         }
     }
 

@@ -52,8 +52,7 @@ namespace mima_c.interpreter
                     // BUG: chars can have more then one character BUT should be checked in the lexer
                     return new RuntimeType(RuntimeType.Type.Char, node.value.Escape());
                 default:
-                    Debug.Assert(false, "Not implemented Type of Literal: " + node.type.ToString());
-                    return null;
+                    throw new NotImplementedException("Not implemented Type of Literal: " + node.type.ToString());
             }
         }
 
@@ -110,10 +109,27 @@ namespace mima_c.interpreter
         }
         public static RuntimeType Walk(VariableAssign node, Scope scope)
         {
-            // TODO is an assumption, could also be a function
-            Variable variable = scope.Translate(new VariableSignature(node.identifier)) as Variable;
-            variable.value = Walk(node.node, scope);
-            return variable.value;
+            Value variable = scope.Translate(new VariableSignature(node.identifier));
+            RuntimeType value = Walk(node.node, scope);
+
+            if (variable is Variable)
+            {
+                (variable as Variable).value = value;
+            }
+            else if (variable is Array)
+            {
+                Array array = variable as Array;
+                RuntimeType[] values = value.Get<Array>().values;
+                if (array.values.Length != values.Length)
+                    throw new ArgumentException("Assignment with different Length not supported!");
+                array.values = values;
+            }
+            else
+            {
+                // This is a unsupported assignment
+                throw new ArgumentException("This is a unsupported assignment: " + node.identifier);
+            }
+            return value;
         }
         public static RuntimeType Walk(FuncCall node, Scope scope)
         {
@@ -131,8 +147,8 @@ namespace mima_c.interpreter
                 VariableSignature variableSignature = new VariableSignature(parameter.identifier);
                 Variable variable = new Variable(Walk(argument, scope));
 
-                Debug.Assert(variable.value.type == RuntimeType.GetTypeFromString(parameter.type),
-                    "Type missmatch between: " + variable.value.type.ToString() + " and " + parameter.type);
+                if (variable.value.type != RuntimeType.GetTypeFromString(parameter.type))
+                    throw new InvalidCastException("Type missmatch between: " + variable.value.type.ToString() + " and " + parameter.type);
 
                 copyScope.AddSymbol(variableSignature, variable);
             }
@@ -146,7 +162,8 @@ namespace mima_c.interpreter
                 return r.returnValue;
             }
 
-            Debug.Assert(function.returnType == "void", "Missing return Statement");
+            if (function.returnType != "void")
+                throw new InvalidOperationException("Missing return Statement");
             return RuntimeType.Void();
         }
         public static RuntimeType Walk(FuncDecl node, Scope scope)
@@ -280,15 +297,38 @@ namespace mima_c.interpreter
 
         public static RuntimeType Walk(ArrayDecl node, Scope scope)
         {
-            throw new NotImplementedException();
+            int size = 0;
+            if (node.countExpr != null)
+                size = Walk(node.countExpr, scope).Get<int>();
+
+            Array variable = new Array(RuntimeType.GetTypeFromString(node.type), size);
+            VariableSignature variableSignature = new VariableSignature(node.identifier);
+            scope.AddSymbol(variableSignature, variable);
+
+            return RuntimeType.Void();
         }
         public static RuntimeType Walk(ArrayAccess node, Scope scope)
         {
-            throw new NotImplementedException();
+            VariableSignature variableSignature = new VariableSignature(node.identifier);
+
+            // TODO is an assumption, could also be a function
+            Array variable = scope.Translate(variableSignature) as Array;
+            int index = Walk(node.indexExpr, scope).Get<int>();
+
+            if (index < 0 || index >= variable.values.Length)
+                throw new IndexOutOfRangeException("Array index out of Range: " + index);
+
+            return variable.values[index];
         }
         public static RuntimeType Walk(ArrayLiteral node, Scope scope)
         {
-            throw new NotImplementedException();
+            List<RuntimeType> values = new List<RuntimeType>();
+            foreach (var expr in node.valueListExprs)
+                values.Add(Walk(expr, scope));
+
+            Array variable = new Array(values.ToArray());
+
+            return new RuntimeType(RuntimeType.Type.Array, variable);
         }
     }
 
@@ -303,7 +343,10 @@ namespace mima_c.interpreter
             Double,
             Void,
             Function,
-            Custom
+            Custom,
+
+            Array,
+            Pointer,
         }
 
         public Type type { get; }
@@ -326,6 +369,10 @@ namespace mima_c.interpreter
             if (type == Type.Int && typeof(T) == typeof(int))
                 return value;
 
+            if (type == Type.Array)
+                return value;
+            if (type == Type.Pointer)
+                return value;
 
             throw new InvalidCastException();
         }
