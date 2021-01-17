@@ -93,18 +93,17 @@ postfix        -> value (PLUSPLUS | MINUSMINUS | DOT | ARROW)?
 value          -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER | arraylit | arrayaccess
 functioncall   -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 arrayaccess    -> IDENTIFIER LBRACKET expr RBRACKET
-arraylit       -> LBRACE (expr)? (, expr)* RBRACE
+arraylit       -> LBRACE (RBRACE | expr (, expr)* RBRACE)
 #+end_src
 
-;; #+begin_src
+#+begin_src
 ;; declaration    -> type IDENTIFIER (LBRACKET expr RBRACKET)? | funcptr
 ;; funcptr        -> type LPAREN STAR IDENTIFIER RPAREN LPAREN (type (LBRACKET RBRACKET)? (COMMA type (LBRACKET RBRACKET)?)*)? RPAREN
-;; type           -> (One of the defined Types :P ) (STAR)*
-;; #+end_src
-
+type           -> (One of the defined Types :P ) (STAR)*
+#+end_src
 
 #+begin_src
-blockstatement -> ((vardecl | expr)? SEMICOLON | block | for | while | if | return | break | continue | instrinsic)
+blockstatement -> ((vardecl | expr | return | break | continue | instrinsic | typedef | structdecl)? SEMICOLON | block | for | while | if)
 for            -> FOR LPAREN (vardecl | expr) SEMICOLON expr SEMICOLON expr RPAREN blockstatement
 while          -> WHILE LPAREN expr RPAREN blockstatement
 if             -> IF LPAREN expr RPAREN blockstatement (ELSE blockstatement)?
@@ -117,10 +116,12 @@ intrinsic      -> INTRINSIC LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 
 #+begin_src
 program        -> (statement)*
-statement      -> ((vardecl | funcdecl)? SEMICOLON)
+statement      -> ((vardecl | funcdecl | structdecl | typedef)? SEMICOLON)
+typedef        -> TYPEDEF (type | structdecl) IDENTIFIER
+structdecl     -> STRUCT IDENTIFIER LBRACE program RBRACE
 vardecl        -> type vardecl' (, vardecl')*
 vardecl'       -> STAR* IDENTIFIER (LBRACKET (expr)? RBRACKET)? (= expr)?
-funcdecl       -> type IDENTIFIER LPAREN (RPAREN | funcdecl' (COMMA funcdecl')* RPAREN) ( SEMICOLON | block)
+funcdecl       -> type IDENTIFIER LPAREN (RPAREN | funcdecl' (COMMA funcdecl')* RPAREN) (SEMICOLON | block)
 funcdecl'      -> type IDENTIFIER (LBRACKET RBRACKET)?
 #+end_src
 
