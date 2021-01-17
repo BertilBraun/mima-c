@@ -283,7 +283,7 @@ namespace mima_c.interpreter
                 if (node.parameters.Count == 0)
                     Raise(node, scope, "printf needs at least one parameter");
                 //  TODO: implement proper printf
-                List<object> parameters = new List<object>();
+                List<dynamic> parameters = new List<dynamic>(node.parameters.Count);
                 foreach (var param in node.parameters)
                     parameters.Add(Walk(param, scope).GetUnderlyingValue_DoNotCallThisMethodUnderAnyCircumstances());
 
@@ -361,24 +361,24 @@ namespace mima_c.interpreter
                 return Walk(node.elseBlock, scope);
         }
 
-        public static RuntimeType Walk(Cast node, Scope scope)
-        {
-            throw new NotImplementedException();
-        }
-
         public static RuntimeType Walk(PointerDecl node, Scope scope)
         {
-            throw new NotImplementedException();
+            Pointer variable = new Pointer(Walk(node.decl, scope));
+            VariableSignature variableSignature = new VariableSignature(node.identifier);
+            scope.AddSymbol(variableSignature, variable);
+
+            return RuntimeType.Void();
         }
 
         public static RuntimeType Walk(PointerAccess node, Scope scope)
         {
-            throw new NotImplementedException();
+            RuntimeType pointer = Walk(node.node, scope);
+            return pointer.Get<RuntimeType>();
         }
 
         public static RuntimeType Walk(PointerLiteral node, Scope scope)
         {
-            throw new NotImplementedException();
+            return new Pointer(Walk(node.node, scope));
         }
 
         static Dictionary<TokenType, Func<int, RuntimeType>> operatorToPostfixArithm = new Dictionary<TokenType, Func<int, RuntimeType>>
@@ -388,14 +388,18 @@ namespace mima_c.interpreter
             };
         public static RuntimeType Walk(PostfixArithm node, Scope scope)
         {
-            // TODO: I dont think, that operation order is presumed PostfixArithm should be processed after passed
             // TODO: At the moment everything is assumed to be a int, BinaryArithms with strings will fail
             // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
             RuntimeType currentValue = Walk(node.node, scope);
+            RuntimeType returnValue = new RuntimeType(currentValue.Get<int>());
+            
+            currentValue.Set(operatorToPostfixArithm[node.operation](currentValue.Get<int>()));
+            return returnValue;
+        }
 
-            RuntimeType newValue = operatorToPostfixArithm[node.operation](currentValue.Get<int>());
-            currentValue.Set(newValue);
-            return currentValue;
+        public static RuntimeType Walk(Cast node, Scope scope)
+        {
+            throw new NotImplementedException();
         }
 
         public static RuntimeType Walk(StructAccess node, Scope scope)

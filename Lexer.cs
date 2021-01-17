@@ -7,6 +7,8 @@
 
     internal class Lexer
     {
+        static string KEYWORD_END = @"(?=\W)";
+
         internal Dictionary<TokenType, string> tokenRegex = new Dictionary<TokenType, string>
         {
             {TokenType.STRINGLITERAL  , @""".*?(?<!\\)""" },
@@ -41,14 +43,14 @@
             {TokenType.LNOT           , @"~"},
             {TokenType.ASSIGN         , @"="},
             {TokenType.COMMA          , @"\,"},
-            {TokenType.WHILE          , @"while"},
-            {TokenType.FOR            , @"for"},
-            {TokenType.IF             , @"if"},
-            {TokenType.ELSE           , @"else"},
-            {TokenType.INTRINSIC      , @"printf"},
-            {TokenType.RETURN         , @"return"},
-            {TokenType.BREAK          , @"break"},
-            {TokenType.CONTINUE       , @"continue"},
+            {TokenType.WHILE          , @"while" + KEYWORD_END},
+            {TokenType.FOR            , @"for" + KEYWORD_END},
+            {TokenType.IF             , @"if" + KEYWORD_END},
+            {TokenType.ELSE           , @"else" + KEYWORD_END},
+            {TokenType.INTRINSIC      , @"printf" + KEYWORD_END},
+            {TokenType.RETURN         , @"return" + KEYWORD_END},
+            {TokenType.BREAK          , @"break" + KEYWORD_END},
+            {TokenType.CONTINUE       , @"continue" + KEYWORD_END},
             {TokenType.IDENTIFIER     , @"[a-zA-Z_][a-zA-Z0-9_]*"},
             {TokenType.SEMICOLON      , @";"},
             {TokenType.LBRACE         , @"{"},

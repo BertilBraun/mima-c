@@ -11,14 +11,16 @@ namespace mima_c.interpreter
     {
         public enum Type
         {
+            Void,
+
             Int,
-            String,
-            Char,
             Float,
             Double,
-            Void,
-            Custom,
 
+            Char,
+            String,
+
+            Struct,
             Array,
             Pointer,
             Function,
@@ -72,6 +74,11 @@ namespace mima_c.interpreter
             throw new InvalidCastException();
         }
 
+        public dynamic GetUnderlyingValue_DoNotCallThisMethodUnderAnyCircumstances()
+        {
+            return value;
+        }
+
         public override string ToString()
         {
             return string.Format("({0}, {1})", type.ToString(), value);
@@ -83,9 +90,11 @@ namespace mima_c.interpreter
                 return Type.Int;
             if (s == "void")
                 return Type.Void;
+            if (s.StartsWith('*'))
+                return Type.Pointer;
 
-            Debug.Assert(false);
-            return Type.Custom;
+            throw new TypeAccessException("Type was not defined: " + s);
+            return Type.Struct;
         }
         public static RuntimeType Void()
         {
@@ -168,12 +177,14 @@ namespace mima_c.interpreter
 
     class Pointer : RuntimeType
     {
-        public Pointer(Type type) : base(type)
+        public int pointerLocation { get; set; } = 0;
+
+        public Pointer(Type type) : this(new RuntimeType(type))
         {
         }
-        public Pointer(RuntimeType value) : base(value.type)
+        public Pointer(RuntimeType value) : base(Type.Pointer, true)
         {
-            this.Set(value);
+            this.Set(new RuntimeType(Type.Pointer, value));
         }
     }
 }

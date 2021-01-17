@@ -189,6 +189,8 @@ namespace mima_c
             {
                 this.decl = decl;
             }
+
+            protected override ASTList _children => new ASTList { decl };
         }
 
         class PointerAccess : AST
@@ -199,6 +201,8 @@ namespace mima_c
             {
                 this.node = node;
             }
+
+            protected override ASTList _children => new ASTList { node };
         }
 
         class PointerLiteral : AST
@@ -209,6 +213,8 @@ namespace mima_c
             {
                 this.node = node;
             }
+
+            protected override ASTList _children => new ASTList { node };
         }
 
         class StructAccess : AST
@@ -221,6 +227,9 @@ namespace mima_c
                 this.operation = operation;
                 this.node = node;
             }
+
+            protected override object _value => operation;
+            protected override ASTList _children => new ASTList { node };
         }
 
         class VariableAssign : AST
@@ -268,6 +277,8 @@ namespace mima_c
                 this.ifBlock = ifBlock;
                 this.elseBlock = elseBlock;
             }
+            protected override object _value => condition;
+            protected override ASTList _children => new ASTList { ifBlock, elseBlock };
         }
 
         class PostfixArithm : AST
@@ -280,6 +291,8 @@ namespace mima_c
                 this.operation = operation;
                 this.node = node;
             }
+            protected override object _value => operation;
+            protected override ASTList _children => new ASTList { node };
         }
 
         class FuncCall : AST

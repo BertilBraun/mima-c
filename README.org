@@ -5,7 +5,7 @@
 - [X] while loop
 - [X] for loop
 - [X] conditionals
-- [ ] tenary operator
+- [X] tenary operator
 - [X] IO printf function
 - [X] return
 - [X] break
@@ -19,14 +19,15 @@
 - [X] Scope
 - [X] while loop
 - [X] for loop
-- [ ] tenary operator
+- [X] tenary operator
 - [X] Conditionals
 - [X] IO printf function
 - [X] Return
 - [X] Break
 - [X] Continue
-- [ ] Arrays
+- [X] Arrays
 - [X] Functions
+- [ ] Pointer
 
 ** Sonstiges
 - [X] Errorhandling (gegen den gepreprocessten filetext)

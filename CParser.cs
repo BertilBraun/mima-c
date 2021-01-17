@@ -116,9 +116,9 @@ namespace mima_c
             return node;
         }
 
-        private bool isType(TypeScope typeScope)
+        private bool IsType(TypeScope typeScope, int n = 0)
         {
-            Token token = Peek();
+            Token token = Peek(n);
             return token.tokenType == TokenType.IDENTIFIER && typeScope.Defined(token.value);
         }
 
@@ -214,26 +214,14 @@ namespace mima_c
 
         private void vardeclprime(TypeScope typeScope, ASTList statements, string varType)
         {
-            string identifier;
+            int starCount = 0;
+            while (PeekEatIf(TokenType.STAR))
+                starCount++;
 
-            if (!PeekType(TokenType.STAR))
-                statements.Add(vardeclprimeprime(typeScope, out identifier, varType));
-            else
-            {
-                AST node = vardeclprimeprime(typeScope, out identifier, varType);
-                while (PeekEatIf(TokenType.STAR))
-                    node = new PointerDecl(node, EatV(TokenType.IDENTIFIER));
-                statements.Add(node);
-            }
-
-            if (PeekEatIf(TokenType.ASSIGN))
-                statements.Add(new VariableAssign(new Variable(identifier), expr(typeScope)));
-        }
-
-        private AST vardeclprimeprime(TypeScope typeScope, out string identifier, string varType)
-        {
-            identifier = EatV(TokenType.IDENTIFIER);
-
+            varType = new string('*', starCount) + varType;
+            string identifier = EatV(TokenType.IDENTIFIER);
+            AST node;
+            
             if (PeekEatIf(TokenType.LBRACKET))
             {
                 AST countExpr = null;
@@ -242,10 +230,21 @@ namespace mima_c
                     countExpr = expr(typeScope);
                     Eat(TokenType.RBRACKET);
                 }
-                return new ArrayDecl(varType, identifier, countExpr);
+                node = new ArrayDecl(varType, identifier, countExpr);
             }
             else
-                return new VariableDecl(varType, identifier);
+                node = new VariableDecl(varType, identifier);
+
+            string pointerIdentifier = identifier;
+            for (int i = 0; i < starCount; i++)
+            {
+                pointerIdentifier = '*' + pointerIdentifier;
+                node = new PointerDecl(node, pointerIdentifier);
+            }
+            statements.Add(node);
+
+            if (PeekEatIf(TokenType.ASSIGN))
+                statements.Add(new VariableAssign(new Variable(identifier), expr(typeScope)));
         }
 
         // one extra level of recursion so it's easy to extend expr
@@ -328,7 +327,7 @@ namespace mima_c
                 return new UnaryArithm(TokenType.PLUS, postfix(typeScope));
 
 
-            if (PeekType(TokenType.LPAREN) && typeScope.Defined(Peek(1).value))
+            if (PeekType(TokenType.LPAREN) && IsType(typeScope, 1))
             {
                 Eat(TokenType.LPAREN);
                 string castType = type(typeScope);
@@ -458,7 +457,7 @@ namespace mima_c
                 node = return_(typeScope);
             else if (PeekType(TokenType.INTRINSIC))
                 node = intrinsic(typeScope);
-            else if (PeekType(TokenType.IDENTIFIER) && PeekType(TokenType.IDENTIFIER, 1))
+            else if (IsType(typeScope))
                 node = vardecl(typeScope);
             else
                 node = expr(typeScope);
