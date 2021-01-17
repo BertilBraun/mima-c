@@ -68,7 +68,7 @@ namespace mima_c
                 {TokenType.PLUS,     Code.PLUS        },
                 {TokenType.MINUS,    Code.MINUS         },
                 {TokenType.DIVIDE,   Code.DIVIDE          },
-                {TokenType.STAR,   Code.MULTIPLY            },
+                {TokenType.STAR,     Code.MULTIPLY            },
                 {TokenType.MODULO,   Code.MODULO          },
 
                 {TokenType.LT,       Code.LT      },
@@ -80,12 +80,6 @@ namespace mima_c
 
                 {TokenType.AND,      Code.AND},
                 {TokenType.OR,       Code.OR},
-
-                {TokenType.DIVIDEEQ, Code.DIVIDEEQ},
-                {TokenType.MODULOEQ, Code.MODULOEQ},
-                {TokenType.STAREQ,   Code.STAREQ},
-                {TokenType.MINUSEQ,  Code.MINUSEQ},
-                {TokenType.PLUSEQ,   Code.PLUSEQ},
             };
 
             public static Code Parse(TokenType type)
@@ -112,12 +106,6 @@ namespace mima_c
 
                 AND,
                 OR,
-
-                DIVIDEEQ,
-                MODULOEQ,
-                STAREQ,
-                MINUSEQ,
-                PLUSEQ,
             }
         }
 
@@ -141,11 +129,11 @@ namespace mima_c
         class UnaryArithm : AST
         {
             public dynamic node  { get; }
-            public Operator.Code op  { get; }
+            public TokenType op  { get; }
 
-            public UnaryArithm(Operator.Code op, AST node)
+            public UnaryArithm(TokenType op, AST node)
             {
-                Debug.Assert(op.In(Operator.Code.MINUS)); // TODO For Future, op.In("-", "+", "*", "&")
+                // Debug.Assert(op.In(TokenType.NOT, TokenType.LNOT, TokenType.MINUS, TokenType.PLUS, TokenType.PLUSPLUS, TokenType.MINUSMINUS));
                 this.op = op;
                 this.node = node;
             }
@@ -254,9 +242,9 @@ namespace mima_c
         {
             public dynamic identifier { get; }
             public dynamic node { get; }
-            public Operator.Code op { get; }
+            public TokenType op { get; }
 
-            public OperationAssign(AST identifier, Operator.Code op, AST node)
+            public OperationAssign(AST identifier, TokenType op, AST node)
             {
                 this.identifier = identifier;
                 this.node = node;
@@ -284,10 +272,10 @@ namespace mima_c
 
         class PostfixArithm : AST
         {
-            private Operator.Code operation { get; }
-            private dynamic node { get; }
+            public TokenType operation { get; }
+            public dynamic node { get; }
 
-            public PostfixArithm(Operator.Code operation, AST node)
+            public PostfixArithm(TokenType operation, AST node)
             {
                 this.operation = operation;
                 this.node = node;

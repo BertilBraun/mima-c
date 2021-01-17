@@ -69,6 +69,9 @@ namespace mima_c.interpreter
                 {Operator.Code.LEQ,      (int x, int y) => new RuntimeType((x <= y) ? 1 : 0) },
                 {Operator.Code.EQ,       (int x, int y) => new RuntimeType((x == y) ? 1 : 0) },
                 {Operator.Code.NEQ,      (int x, int y) => new RuntimeType((x != y) ? 1 : 0) },
+
+                {Operator.Code.AND,      (int x, int y) => new RuntimeType((x != 0 && y != 0) ? 1 : 0) },
+                {Operator.Code.OR,       (int x, int y) => new RuntimeType((x != 0 || y != 0) ? 1 : 0) },
                 // TODO string, char with these operators
                 // {Operator.Code.EQ,       (int x, int y) => new RuntimeType((x == y) ? 1 : 0) },
                 // {Operator.Code.NEQ,      (int x, int y) => new RuntimeType((x != y) ? 1 : 0) },
@@ -82,10 +85,16 @@ namespace mima_c.interpreter
 
             return operatorToBinaryFunc[node.op](leftValue.Get<int>(), rightValue.Get<int>());
         }
-        static Dictionary<Operator.Code, Func<int, int>> operatorToUnaryFunc = new Dictionary<Operator.Code, Func<int, int>>
+        static Dictionary<TokenType, Func<int, int>> operatorToUnaryFunc = new Dictionary<TokenType, Func<int, int>>
             {
-                {Operator.Code.PLUS,     (int x) => x },
-                {Operator.Code.MINUS,    (int x) => -x },
+                {TokenType.PLUS,          (int x) => x },
+                {TokenType.MINUS,         (int x) => -x },
+
+                {TokenType.NOT,           (int x) => (x == 0) ? 1 : 0 },
+                {TokenType.LNOT,          (int x) => ~x },
+
+                {TokenType.PLUSPLUS,      (int x) => x + 1},
+                {TokenType.MINUSMINUS,    (int x) => x - 1 },
             };
         public static RuntimeType Walk(UnaryArithm node, Scope scope)
         {
@@ -323,19 +332,78 @@ namespace mima_c.interpreter
 
             return new Array(values.ToArray());
         }
+        
+        static Dictionary<TokenType, Func<int, int, RuntimeType>> operatorToOperationAssign = new Dictionary<TokenType, Func<int, int, RuntimeType>>
+            {
+                {TokenType.PLUSEQ,     (int x, int y) => new RuntimeType(x + y) },
+                {TokenType.MINUSEQ,    (int x, int y) => new RuntimeType(x - y) },
+                {TokenType.DIVIDEEQ,   (int x, int y) => new RuntimeType(x / y) },
+                {TokenType.STAREQ,     (int x, int y) => new RuntimeType(x * y) },
+                {TokenType.MODULOEQ,   (int x, int y) => new RuntimeType(x % y) },
+            };
+        public static RuntimeType Walk(OperationAssign node, Scope scope)
+        {
+            // TODO: At the moment everything is assumed to be a int, BinaryArithms with strings will fail
+            // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
+            RuntimeType leftValue = Walk(node.identifier, scope);
+            RuntimeType rightValue = Walk(node.node, scope);
+
+            RuntimeType value = operatorToOperationAssign[node.op](leftValue.Get<int>(), rightValue.Get<int>());
+            leftValue.Set(value);
+            return value;
+        }
+
+        public static RuntimeType Walk(Ternary node, Scope scope)
+        {
+            if (Walk(node.condition, scope).Get<int>() != 0)
+                return Walk(node.ifBlock, scope);
+            else
+                return Walk(node.elseBlock, scope);
+        }
+
+        public static RuntimeType Walk(Cast node, Scope scope)
+        {
+            throw new NotImplementedException();
+        }
 
         public static RuntimeType Walk(PointerDecl node, Scope scope)
         {
             throw new NotImplementedException();
-            // Pointer pointer = new Pointer();
-            // Array variable = new Array(RuntimeType.GetTypeFromString(node.type), size);
-            // VariableSignature variableSignature = new VariableSignature(node.identifier);
-            // scope.AddSymbol(variableSignature, variable);
-            // 
-            // return RuntimeType.Void();
         }
 
+        public static RuntimeType Walk(PointerAccess node, Scope scope)
+        {
+            throw new NotImplementedException();
+        }
 
+        public static RuntimeType Walk(PointerLiteral node, Scope scope)
+        {
+            throw new NotImplementedException();
+        }
+
+        static Dictionary<TokenType, Func<int, RuntimeType>> operatorToPostfixArithm = new Dictionary<TokenType, Func<int, RuntimeType>>
+            {
+                {TokenType.PLUSPLUS,       (int x) => new RuntimeType(x + 1) },
+                {TokenType.MINUSMINUS,     (int x) => new RuntimeType(x - 1) },
+            };
+        public static RuntimeType Walk(PostfixArithm node, Scope scope)
+        {
+            // TODO: I dont think, that operation order is presumed PostfixArithm should be processed after passed
+            // TODO: At the moment everything is assumed to be a int, BinaryArithms with strings will fail
+            // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
+            RuntimeType currentValue = Walk(node.node, scope);
+
+            RuntimeType newValue = operatorToPostfixArithm[node.operation](currentValue.Get<int>());
+            currentValue.Set(newValue);
+            return currentValue;
+        }
+
+        public static RuntimeType Walk(StructAccess node, Scope scope)
+        {
+            throw new NotImplementedException();
+        }
+        
+            
         class BreakExc : Exception
         {
         }

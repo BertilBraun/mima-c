@@ -116,6 +116,12 @@ namespace mima_c
             return node;
         }
 
+        private bool isType(TypeScope typeScope)
+        {
+            Token token = Peek();
+            return token.tokenType == TokenType.IDENTIFIER && typeScope.Defined(token.value);
+        }
+
         private string type(TypeScope typeScope)
         {
             string type = EatV(TokenType.IDENTIFIER);
@@ -258,7 +264,7 @@ namespace mima_c
             {
                 TokenType op = Peek().tokenType;
                 Eat(op);
-                node = new OperationAssign(node, Operator.Parse(op), assignment(typeScope));
+                node = new OperationAssign(node, op, assignment(typeScope));
             }
 
             return node;
@@ -312,14 +318,14 @@ namespace mima_c
         private AST unary(TypeScope typeScope)
         {
             if (PeekEatIf(TokenType.MINUSMINUS))
-                return new UnaryArithm(Operator.Parse(TokenType.MINUSMINUS), postfix(typeScope));
+                return new UnaryArithm(TokenType.MINUSMINUS, postfix(typeScope));
             if (PeekEatIf(TokenType.PLUSPLUS))
-                return new UnaryArithm(Operator.Parse(TokenType.PLUSPLUS), postfix(typeScope));
+                return new UnaryArithm(TokenType.PLUSPLUS, postfix(typeScope));
 
             if (PeekEatIf(TokenType.MINUS))
-                return new UnaryArithm(Operator.Parse(TokenType.MINUS), postfix(typeScope));
+                return new UnaryArithm(TokenType.MINUS, postfix(typeScope));
             if (PeekEatIf(TokenType.PLUS))
-                return new UnaryArithm(Operator.Parse(TokenType.PLUS), postfix(typeScope));
+                return new UnaryArithm(TokenType.PLUS, postfix(typeScope));
 
 
             if (PeekType(TokenType.LPAREN) && typeScope.Defined(Peek(1).value))
@@ -336,9 +342,9 @@ namespace mima_c
                 return new PointerLiteral(unary(typeScope));
 
             if (PeekEatIf(TokenType.NOT))
-                return new UnaryArithm(Operator.Parse(TokenType.NOT), unary(typeScope));
+                return new UnaryArithm(TokenType.NOT, unary(typeScope));
             if (PeekEatIf(TokenType.LNOT))
-                return new UnaryArithm(Operator.Parse(TokenType.LNOT), unary(typeScope));
+                return new UnaryArithm(TokenType.LNOT, unary(typeScope));
 
             return postfix(typeScope);
         }
@@ -348,9 +354,9 @@ namespace mima_c
             AST node = value(typeScope);
 
             if (PeekEatIf(TokenType.MINUSMINUS))
-                node = new PostfixArithm(Operator.Parse(TokenType.MINUSMINUS), node);
+                node = new PostfixArithm(TokenType.MINUSMINUS, node);
             if (PeekEatIf(TokenType.PLUSPLUS))
-                node = new PostfixArithm(Operator.Parse(TokenType.PLUSPLUS), node);
+                node = new PostfixArithm(TokenType.PLUSPLUS, node);
             if (PeekEatIf(TokenType.DOT))
                 node = new StructAccess(TokenType.DOT, node);
             if (PeekEatIf(TokenType.ARROW))
