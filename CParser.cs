@@ -52,11 +52,13 @@ namespace mima_c
         TypeScope parent;
 
         HashSet<string> types;
+        Dictionary<string, string> map;
 
         public TypeScope(TypeScope parent)
         {
             this.parent = parent;
             this.types = new HashSet<string>();
+            this.map = new Dictionary<string, string>();
         }
 
         public bool Defined(string identifier)
@@ -69,8 +71,29 @@ namespace mima_c
             if (Defined(type))
                 throw new ArgumentException("Type allready defined! Type: " + type);
 
+            map[type] = type;
             types.Add(type);
             return true;
+        }
+
+        public bool Typedef(string type, string alias)
+        {
+            if (!Defined(type))
+                throw new ArgumentException("Type not defined! Cant Typedef to this Type: " + type);
+
+            map[alias] = type;
+            types.Add(alias);
+            return true;
+        }
+
+        public string ParseType(string type)
+        {
+            if (!Defined(type))
+                throw new ArgumentException("Type not defined! Type: " + type);
+
+            if (map.ContainsKey(type))
+                return map[type];
+            return parent.ParseType(type);
         }
 
         public override string ToString()
@@ -126,10 +149,7 @@ namespace mima_c
         {
             string type = EatV(TokenType.IDENTIFIER);
 
-            if (!typeScope.Defined(type))
-                throw new KeyNotFoundException("Type of " + type + " was not defined in the current Scope!");
-
-            return type;
+            return typeScope.ParseType(type);
         }
 
         private AST program(TypeScope typeScope)
@@ -144,7 +164,23 @@ namespace mima_c
 
         private AST statement(TypeScope typeScope)
         {
-            if (PeekType(TokenType.IDENTIFIER) && PeekType(TokenType.IDENTIFIER, 1))
+            if (PeekType(TokenType.STRUCT) && !IsType(typeScope, 1))
+            {
+                AST structDecl = structdecl(typeScope, out string s);
+                Eat(TokenType.SEMICOLON);
+                return structDecl;
+            }
+
+            if (PeekType(TokenType.TYPEDEF))
+            {
+                AST def = typedef(typeScope);
+                Eat(TokenType.SEMICOLON);
+                return def;
+            }
+
+            // This is to remove "struct A a" type of variable declaration
+            PeekEatIf(TokenType.STRUCT);
+            if (IsType(typeScope) && PeekType(TokenType.IDENTIFIER, 1))
             {
                 if (PeekType(TokenType.LPAREN, 2))
                     return funcdecl(typeScope);
@@ -197,6 +233,53 @@ namespace mima_c
             string varType = type(typeScope);
             string varIdentifier = EatV(TokenType.IDENTIFIER);
             parameters.Add(new FuncDecl.Parameter(varType, varIdentifier));
+        }
+
+        private AST typedef(TypeScope typeScope)
+        {
+            Eat(TokenType.TYPEDEF);
+
+            // Todo typedefing :)
+            if (IsType(typeScope))
+            {
+                string typeName = type(typeScope);
+                string alias = EatV(TokenType.IDENTIFIER);
+                typeScope.Typedef(typeName, alias);
+                return new Typedef(typeName, alias);
+            }
+            else
+            {
+                AST structDecl = structdecl(typeScope, out string identifier);
+                string alias = EatV(TokenType.IDENTIFIER);
+                if (identifier == "")
+                    typeScope.AddType(alias);
+                else
+                    typeScope.Typedef(identifier, alias);
+
+                return new Statements(new ASTList { new Typedef(identifier, alias), structDecl });
+            }
+        }
+
+        private AST structdecl(TypeScope typeScope, out string identifier)
+        {
+            Eat(TokenType.STRUCT);
+            identifier = "";
+            if (PeekType(TokenType.IDENTIFIER))
+            {
+                identifier = EatV(TokenType.IDENTIFIER);
+                typeScope.AddType(identifier);
+            }
+
+            Eat(TokenType.LBRACE);
+            ASTList statements = new ASTList();
+
+            while (!PeekEatIf(TokenType.RBRACE))
+            {
+                statements.Add(vardecl(typeScope));
+                Eat(TokenType.SEMICOLON);
+            }
+
+            return new StructDecl(identifier, new Statements(statements));
         }
 
         private AST vardecl(TypeScope typeScope)

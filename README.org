@@ -27,7 +27,9 @@
 - [X] Continue
 - [X] Arrays
 - [X] Functions
-- [ ] Pointer
+- [X] Pointer
+- [ ] Cast
+- [ ] Struct
 
 ** Sonstiges
 - [X] Errorhandling (gegen den gepreprocessten filetext)
@@ -119,7 +121,7 @@ intrinsic      -> INTRINSIC LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 program        -> (statement)*
 statement      -> ((vardecl | funcdecl | structdecl | typedef)? SEMICOLON)
 typedef        -> TYPEDEF (type | structdecl) IDENTIFIER
-structdecl     -> STRUCT IDENTIFIER LBRACE program RBRACE
+structdecl     -> STRUCT IDENTIFIER? LBRACE (vardecl SEMICOLON)* RBRACE
 vardecl        -> type vardecl' (, vardecl')*
 vardecl'       -> STAR* IDENTIFIER (LBRACKET (expr)? RBRACKET)? (= expr)?
 funcdecl       -> type IDENTIFIER LPAREN (RPAREN | funcdecl' (COMMA funcdecl')* RPAREN) (SEMICOLON | block)

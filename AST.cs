@@ -457,6 +457,35 @@ namespace mima_c
             protected override ASTList _children => new ASTList { condition, ifBody, elseBody };
         }
 
+        class StructDecl : AST
+        {
+            public string typeName { get; }
+            public dynamic program { get; }
+
+            public StructDecl(string typeName, AST program)
+            {
+                this.typeName = typeName;
+                this.program = program;
+            }
+
+            protected override object _value => typeName;
+            protected override ASTList _children => new ASTList { program };
+        }
+
+        class Typedef : AST
+        {
+            public string typeName { get; }
+            public string alias { get; }
+
+            public Typedef(string typeName, string alias)
+            {
+                this.typeName = typeName;
+                this.alias = alias;
+            }
+
+            protected override object _value => (typeName, alias);
+        }
+
         class Break : AST
         {
 

@@ -1,19 +1,29 @@
 ﻿
+struct S {
+    int a;
+
+
+};
+
+typedef int bool;
+typedef bool bool;
+
+typedef S Struct;
+
+typedef struct {
+    bool b = 2;
+} W;
+
+typedef struct X {
+
+} X;
+
 int main() {
 
-    int a = 5;
-    int* b;
-    b = &a;
-    int* c = b;
-    int* d = &a;
-    int** e = &b;
-    int f = *b;
-    int g = *c;
+    bool b = 0;
 
-    **e = 2;
-
-    printf(*(&(**e)));
+    if (b == 0)
+        printf(b);
     printf("Done");
-
     return 0;
 }

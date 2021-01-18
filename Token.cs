@@ -60,6 +60,8 @@ namespace mima_c
         STAREQ,
         MINUSEQ,
         PLUSEQ,
+        STRUCT,
+        TYPEDEF,
     }
 
     internal class Pos

@@ -120,7 +120,7 @@ namespace mima_c.interpreter
             VariableSignature variableSignature = new VariableSignature(node.identifier);
             scope.AddSymbol(variableSignature, variable);
 
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(VariableAssign node, Scope scope)
         {
@@ -163,7 +163,7 @@ namespace mima_c.interpreter
 
             if (function.returnType != RuntimeType.Type.Void)
                 throw new InvalidOperationException("Missing return Statement");
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(FuncDecl node, Scope scope)
         {
@@ -176,7 +176,7 @@ namespace mima_c.interpreter
             FunctionSignature signature = new FunctionSignature(node.identifier, parameteres);
 
             scope.AddSymbol(signature, function);
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(FuncDef node, Scope scope)
         {
@@ -189,14 +189,14 @@ namespace mima_c.interpreter
             // TODO is an assumption, could also be a variable
             Function function = scope.Translate(signature) as Function;
             function.Define(node.block, node.parameters);
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(Statements node, Scope scope)
         {
             foreach (var statement in node.statements)
                 Walk(statement, scope);
 
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(BlockStatements node, Scope scope, Scope copyScope = null)
         {
@@ -205,12 +205,12 @@ namespace mima_c.interpreter
             foreach (var statement in node.statements)
                 Walk(statement, blockScope);
 
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(Program node, Scope scope)
         {
             Walk((Statements)node, scope);
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(For node, Scope scope)
         {
@@ -234,7 +234,7 @@ namespace mima_c.interpreter
                 Walk(node.loopExecution, blockScope);
             }
 
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(While node, Scope scope)
         {
@@ -251,7 +251,7 @@ namespace mima_c.interpreter
                 {
                 }
 
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(If node, Scope scope)
         {
@@ -260,7 +260,7 @@ namespace mima_c.interpreter
             else
                 Walk(node.elseBody, scope);
 
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(Break node, Scope scope)
         {
@@ -293,7 +293,7 @@ namespace mima_c.interpreter
                 string ouput = formatString.Format(parameters.ToArray());
                 Console.WriteLine("printf: \"" + ouput + "\"");
             }
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
 
         public static RuntimeType Walk(ArrayDecl node, Scope scope)
@@ -306,7 +306,7 @@ namespace mima_c.interpreter
             VariableSignature variableSignature = new VariableSignature(node.identifier);
             scope.AddSymbol(variableSignature, variable);
 
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
         public static RuntimeType Walk(ArrayAccess node, Scope scope)
         {
@@ -367,7 +367,7 @@ namespace mima_c.interpreter
             VariableSignature variableSignature = new VariableSignature(node.identifier);
             scope.AddSymbol(variableSignature, variable);
 
-            return RuntimeType.Void();
+            return RuntimeType.Void;
         }
 
         public static RuntimeType Walk(PointerAccess node, Scope scope)
@@ -397,8 +397,19 @@ namespace mima_c.interpreter
             return returnValue;
         }
 
+        public static RuntimeType Walk(Typedef node, Scope scope)
+        {
+            return RuntimeType.Void;
+        }
+
         public static RuntimeType Walk(Cast node, Scope scope)
         {
+            throw new NotImplementedException();
+        }
+
+        public static RuntimeType Walk(StructDecl node, Scope scope)
+        {
+            return RuntimeType.Void;
             throw new NotImplementedException();
         }
 

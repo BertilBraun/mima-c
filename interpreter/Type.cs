@@ -26,6 +26,8 @@ namespace mima_c.interpreter
             Function,
         }
 
+        public static RuntimeType Void => new RuntimeType(Type.Void, null);
+
         public Type type { get; }
         protected dynamic value;
 
@@ -96,11 +98,6 @@ namespace mima_c.interpreter
             throw new TypeAccessException("Type was not defined: " + s);
             return Type.Struct;
         }
-        public static RuntimeType Void()
-        {
-            return new RuntimeType(Type.Void, null);
-        }
-
         internal void MakeUnAssignable()
         {
             assignable = false;

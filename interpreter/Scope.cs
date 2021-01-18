@@ -31,6 +31,10 @@ namespace mima_c.interpreter
 
         public bool AddSymbol(Signature symbol, RuntimeType value)
         {
+            // Anonymous struct types must not be added
+            if (symbol.ToString() == "")
+                return false;
+
             if (translation.ContainsKey(symbol))
             {
                 Debug.Assert(false, "Variable allready defined! Signature: " + symbol.ToString());

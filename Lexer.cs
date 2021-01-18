@@ -43,6 +43,8 @@
             {TokenType.LNOT           , @"~"},
             {TokenType.ASSIGN         , @"="},
             {TokenType.COMMA          , @"\,"},
+            {TokenType.STRUCT         , @"struct" + KEYWORD_END},
+            {TokenType.TYPEDEF        , @"typedef" + KEYWORD_END},
             {TokenType.WHILE          , @"while" + KEYWORD_END},
             {TokenType.FOR            , @"for" + KEYWORD_END},
             {TokenType.IF             , @"if" + KEYWORD_END},
