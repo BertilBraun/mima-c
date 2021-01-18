@@ -27,9 +27,10 @@
 - [X] Continue
 - [X] Arrays
 - [X] Functions
-- [X] Pointer
+- [ ] Pointer  missing: (Pointer arithmetic expressions | Array to Pointer Decl | Array index with Pointer)
 - [ ] Cast
 - [ ] Struct
+- [X] Typedef
 
 ** Sonstiges
 - [X] Errorhandling (gegen den gepreprocessten filetext)
