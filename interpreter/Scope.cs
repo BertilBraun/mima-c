@@ -45,16 +45,21 @@ namespace mima_c.interpreter
             return true;
         }
 
-        public void Add(Scope scope)
-        {
-            foreach (var item in scope.translation)
-                translation.Add(item.Key, item.Value);
-        }
+        // public void Add(Scope scope)
+        // {
+        //     foreach (var item in scope.translation)
+        //         translation.Add(item.Key, item.Value);
+        // }
 
-        public void MakeScopeToStructVariables(string name)
+        public List<(string, RuntimeType)> GetAllVariables()
         {
-            foreach (Signature signature in translation.Keys)
-                (signature as VariableSignature).name = name + "." + (signature as VariableSignature).name;
+            List<(string, RuntimeType)> data = new List<(string, RuntimeType)>();
+
+            foreach (VariableSignature signature in translation.Keys)
+                if (signature != null)
+                    data.Add((signature.name, translation[signature]));
+
+            return data;
         }
 
         public override string ToString()

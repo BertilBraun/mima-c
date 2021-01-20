@@ -189,4 +189,14 @@ namespace mima_c.interpreter
             this.Set(new RuntimeType(Type.Pointer, value));
         }
     }
+
+    class Struct : RuntimeType
+    {
+        public List<(string, RuntimeType)> variables { get; }
+
+        public Struct(Scope structValues) : base(Type.Struct, true)
+        {
+            variables = structValues.GetAllVariables();
+        }
+    }
 }

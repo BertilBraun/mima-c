@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace mima_c.interpreter
@@ -126,8 +127,11 @@ namespace mima_c.interpreter
                 foreach (var decl in customTypes[node.type])
                     Walk(decl, structValues);
 
-                structValues.MakeScopeToStructVariables(node.identifier);
-                scope.Add(structValues);
+                Struct variable = new Struct(structValues);
+                VariableSignature variableSignature = new VariableSignature(node.identifier);
+                scope.AddSymbol(variableSignature, variable);
+                // structValues.MakeScopeToStructVariables(node.identifier);
+                // scope.Add(structValues);
             }
             else
             {
@@ -348,7 +352,7 @@ namespace mima_c.interpreter
 
             return new Array(values.ToArray());
         }
-        
+
         static Dictionary<TokenType, Func<int, int, RuntimeType>> operatorToOperationAssign = new Dictionary<TokenType, Func<int, int, RuntimeType>>
             {
                 {TokenType.PLUSEQ,     (int x, int y) => new RuntimeType(x + y) },
@@ -408,7 +412,7 @@ namespace mima_c.interpreter
             // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
             RuntimeType currentValue = Walk(node.node, scope);
             RuntimeType returnValue = new RuntimeType(currentValue.Get<int>());
-            
+
             currentValue.Set(operatorToPostfixArithm[node.operation](currentValue.Get<int>()));
             return returnValue;
         }
@@ -432,7 +436,7 @@ namespace mima_c.interpreter
             customTypes[node.typeName] = node.program.statements;
 
             // StructValues now contains all defined variables and default values
-            
+
             //Struct variable = new Pointer(Walk(node.decl, scope));
             //VariableSignature variableSignature = new VariableSignature(node.identifier);
             //scope.AddSymbol(variableSignature, variable);
@@ -442,10 +446,23 @@ namespace mima_c.interpreter
 
         public static RuntimeType Walk(StructAccess node, Scope scope)
         {
-            throw new NotImplementedException();
+            if (node.operation == TokenType.DOT)
+            {
+                Struct variable = Walk(node.variable, scope) as Struct;
+                var data = variable.variables.Where((v) => v.Item1 == node.field).First();
+                if (data.Item2 == null)
+                    throw new AccessViolationException("Field of name: " + node.field + " does not exist!");
+                return data.Item2;
+            }
+            else if (node.operation == TokenType.ARROW)
+            {
+                throw new NotImplementedException();
+            }
+            else
+                throw new InvalidOperationException("Operation " + node.operation.ToString() + " for Struct Access not defined!");
         }
-        
-            
+
+
         class BreakExc : Exception
         {
         }

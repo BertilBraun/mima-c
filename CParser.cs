@@ -51,14 +51,12 @@ namespace mima_c
     {
         TypeScope parent;
 
-        HashSet<string> nonStructs;
         HashSet<string> types;
         Dictionary<string, string> typedefs;
 
         public TypeScope(TypeScope parent)
         {
             this.parent = parent;
-            this.nonStructs = new HashSet<string>();
             this.types = new HashSet<string>();
             this.typedefs = new Dictionary<string, string>();
         }
@@ -68,13 +66,10 @@ namespace mima_c
             return types.Contains(identifier) || (parent != null && parent.Defined(identifier));
         }
 
-        public bool AddType(string type, bool isStruct = true)
+        public bool AddType(string type)
         {
             if (Defined(type))
                 throw new ArgumentException("Type allready defined! Type: " + type);
-
-            if (!isStruct)
-                nonStructs.Add(type);
 
             typedefs[type] = type;
             types.Add(type);
@@ -85,9 +80,6 @@ namespace mima_c
         {
             if (!Defined(type))
                 throw new ArgumentException("Type not defined! Cant Typedef to this Type: " + type);
-
-            if (nonStructs.Contains(type))
-                nonStructs.Add(alias);
 
             typedefs[alias] = type;
             types.Add(alias);
@@ -102,14 +94,6 @@ namespace mima_c
             if (typedefs.ContainsKey(type))
                 return typedefs[type];
             return parent.ParseType(type);
-        }
-
-        public bool IsStruct(string type)
-        {
-            if (!Defined(type))
-                throw new ArgumentException("Type not defined! Type: " + type);
-
-            return nonStructs.Contains(type);
         }
 
         public override string ToString()
@@ -130,10 +114,10 @@ namespace mima_c
         {
             TypeScope typeScope = new TypeScope(null);
 
-            typeScope.AddType("int", false);
-            typeScope.AddType("float", false);
-            typeScope.AddType("double", false);
-            typeScope.AddType("char", false);
+            typeScope.AddType("int");
+            typeScope.AddType("float");
+            typeScope.AddType("double");
+            typeScope.AddType("char");
 
             return typeScope;
         }
@@ -271,10 +255,7 @@ namespace mima_c
             {
                 AST structDecl = structdecl(typeScope, out string identifier);
                 string alias = EatV(TokenType.IDENTIFIER);
-                if (identifier == "")
-                    typeScope.AddType(alias);
-                else
-                    typeScope.Typedef(identifier, alias);
+                typeScope.Typedef(identifier, alias);
 
                 return new Statements(new ASTList { new Typedef(identifier, alias), structDecl });
             }
@@ -283,12 +264,10 @@ namespace mima_c
         private AST structdecl(TypeScope typeScope, out string identifier)
         {
             Eat(TokenType.STRUCT);
-            identifier = "";
+            identifier = new Random().Next(100000, 999999).ToString();
             if (PeekType(TokenType.IDENTIFIER))
-            {
                 identifier = EatV(TokenType.IDENTIFIER);
-                typeScope.AddType(identifier);
-            }
+            typeScope.AddType(identifier);
 
             Eat(TokenType.LBRACE);
             ASTList statements = new ASTList();
@@ -460,9 +439,9 @@ namespace mima_c
             if (PeekEatIf(TokenType.PLUSPLUS))
                 node = new PostfixArithm(TokenType.PLUSPLUS, node);
             if (PeekEatIf(TokenType.DOT))
-                node = new StructAccess(TokenType.DOT, node);
+                node = new StructAccess(TokenType.DOT, node, EatV(TokenType.IDENTIFIER));
             if (PeekEatIf(TokenType.ARROW))
-                node = new StructAccess(TokenType.ARROW, node);
+                node = new StructAccess(TokenType.ARROW, node, EatV(TokenType.IDENTIFIER));
 
             return node;
         }

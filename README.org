@@ -93,7 +93,7 @@ p4             -> (p3 (PLUS | MINUS))* p3
 p3             -> (unary (STAR | DIVIDE | MOD))* unary
 unary          -> (cast | STAR | AMPERSAND | NOT | LNOT) unary | (PLUSPLUS | MINUSMINUS | MINUS | PLUS)? postfix
 cast           -> LPAREN type RPAREN
-postfix        -> value (PLUSPLUS | MINUSMINUS | DOT | ARROW)?
+postfix        -> value (PLUSPLUS | MINUSMINUS | ((DOT | ARROW) value))?
 value          -> INTLITERAL | LPAREN expr RPAREN | functioncall | IDENTIFIER | arraylit | arrayaccess
 functioncall   -> IDENTIFIER LPAREN (RPAREN | expr (COMMA expr)* RPAREN)
 arrayaccess    -> IDENTIFIER LBRACKET expr RBRACKET

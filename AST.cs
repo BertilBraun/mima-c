@@ -220,16 +220,18 @@ namespace mima_c
         class StructAccess : AST
         {
             public TokenType operation { get; }
-            public dynamic node { get; }
+            public dynamic variable { get; }
+            public string field { get; }
 
-            public StructAccess(TokenType operation, AST node)
+            public StructAccess(TokenType operation, AST variable, string field)
             {
                 this.operation = operation;
-                this.node = node;
+                this.variable = variable;
+                this.field = field;
             }
 
             protected override object _value => operation;
-            protected override ASTList _children => new ASTList { node };
+            protected override ASTList _children => new ASTList { variable, field };
         }
 
         class VariableAssign : AST
