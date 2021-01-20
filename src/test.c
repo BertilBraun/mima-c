@@ -1,8 +1,7 @@
 ﻿
 struct S {
     int a;
-
-
+    int* b;
 };
 
 typedef int bool;
@@ -20,10 +19,15 @@ typedef struct X {
 
 int main() {
 
-    bool b = 0;
+    // bool b = 0;
+    // int a = (int)b;
 
-    if (b == 0)
-        printf(b);
+    S test1;
+    Struct test2;
+    W test2;
+
+    // if (b == 0)
+    //     printf(b);
     printf("Done");
     return 0;
 }

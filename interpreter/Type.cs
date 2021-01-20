@@ -28,7 +28,7 @@ namespace mima_c.interpreter
 
         public static RuntimeType Void => new RuntimeType(Type.Void, null);
 
-        public Type type { get; }
+        public Type type { get; private set; }
         protected dynamic value;
 
         private bool assignable { get;  set; } = false;
@@ -95,7 +95,7 @@ namespace mima_c.interpreter
             if (s.StartsWith('*'))
                 return Type.Pointer;
 
-            throw new TypeAccessException("Type was not defined: " + s);
+            //throw new TypeAccessException("Type was not defined: " + s);
             return Type.Struct;
         }
         internal void MakeUnAssignable()
@@ -106,6 +106,11 @@ namespace mima_c.interpreter
         internal void MakeAssignable()
         {
             assignable = true;
+        }
+
+        internal void SetType(Type type)
+        {
+            this.type = type;
         }
     }
 

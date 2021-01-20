@@ -51,14 +51,16 @@ namespace mima_c
     {
         TypeScope parent;
 
+        HashSet<string> nonStructs;
         HashSet<string> types;
-        Dictionary<string, string> map;
+        Dictionary<string, string> typedefs;
 
         public TypeScope(TypeScope parent)
         {
             this.parent = parent;
+            this.nonStructs = new HashSet<string>();
             this.types = new HashSet<string>();
-            this.map = new Dictionary<string, string>();
+            this.typedefs = new Dictionary<string, string>();
         }
 
         public bool Defined(string identifier)
@@ -66,12 +68,15 @@ namespace mima_c
             return types.Contains(identifier) || (parent != null && parent.Defined(identifier));
         }
 
-        public bool AddType(string type)
+        public bool AddType(string type, bool isStruct = true)
         {
             if (Defined(type))
                 throw new ArgumentException("Type allready defined! Type: " + type);
 
-            map[type] = type;
+            if (!isStruct)
+                nonStructs.Add(type);
+
+            typedefs[type] = type;
             types.Add(type);
             return true;
         }
@@ -81,7 +86,10 @@ namespace mima_c
             if (!Defined(type))
                 throw new ArgumentException("Type not defined! Cant Typedef to this Type: " + type);
 
-            map[alias] = type;
+            if (nonStructs.Contains(type))
+                nonStructs.Add(alias);
+
+            typedefs[alias] = type;
             types.Add(alias);
             return true;
         }
@@ -91,9 +99,17 @@ namespace mima_c
             if (!Defined(type))
                 throw new ArgumentException("Type not defined! Type: " + type);
 
-            if (map.ContainsKey(type))
-                return map[type];
+            if (typedefs.ContainsKey(type))
+                return typedefs[type];
             return parent.ParseType(type);
+        }
+
+        public bool IsStruct(string type)
+        {
+            if (!Defined(type))
+                throw new ArgumentException("Type not defined! Type: " + type);
+
+            return nonStructs.Contains(type);
         }
 
         public override string ToString()
@@ -114,10 +130,10 @@ namespace mima_c
         {
             TypeScope typeScope = new TypeScope(null);
 
-            typeScope.AddType("int");
-            typeScope.AddType("float");
-            typeScope.AddType("double");
-            typeScope.AddType("char");
+            typeScope.AddType("int", false);
+            typeScope.AddType("float", false);
+            typeScope.AddType("double", false);
+            typeScope.AddType("char", false);
 
             return typeScope;
         }
@@ -141,7 +157,13 @@ namespace mima_c
 
         private bool IsType(TypeScope typeScope, int n = 0)
         {
+            // This is to remove "struct A a" type of variable declaration
             Token token = Peek(n);
+            // if (token.tokenType == TokenType.STRUCT)
+            // {
+            //     token = Peek(n + 1);
+            //     return token.tokenType == TokenType.IDENTIFIER && typeScope.Defined(token.value);
+            // }
             return token.tokenType == TokenType.IDENTIFIER && typeScope.Defined(token.value);
         }
 
@@ -178,8 +200,6 @@ namespace mima_c
                 return def;
             }
 
-            // This is to remove "struct A a" type of variable declaration
-            PeekEatIf(TokenType.STRUCT);
             if (IsType(typeScope) && PeekType(TokenType.IDENTIFIER, 1))
             {
                 if (PeekType(TokenType.LPAREN, 2))
@@ -279,7 +299,7 @@ namespace mima_c
                 Eat(TokenType.SEMICOLON);
             }
 
-            return new StructDecl(identifier, new Statements(statements));
+            return new StructDef(identifier, new Statements(statements));
         }
 
         private AST vardecl(TypeScope typeScope)

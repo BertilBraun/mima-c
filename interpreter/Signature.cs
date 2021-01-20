@@ -62,7 +62,7 @@ namespace mima_c.interpreter
     }
     class VariableSignature : Signature
     {
-        string name;
+        public string name;
         // TODO HACK, signature should be based on type right?
 
         public VariableSignature(string name)

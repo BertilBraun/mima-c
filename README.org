@@ -27,8 +27,8 @@
 - [X] Continue
 - [X] Arrays
 - [X] Functions
-- [ ] Pointer  missing: (Pointer arithmetic expressions | Array to Pointer Decl | Array index with Pointer)
-- [ ] Cast
+- [X] Pointer  missing: (Pointer arithmetic expressions | Array to Pointer Decl | Array index with Pointer)
+- [X] Cast
 - [ ] Struct
 - [X] Typedef
 
@@ -103,7 +103,7 @@ arraylit       -> LBRACE (RBRACE | expr (, expr)* RBRACE)
 #+begin_src
 ;; declaration    -> type IDENTIFIER (LBRACKET expr RBRACKET)? | funcptr
 ;; funcptr        -> type LPAREN STAR IDENTIFIER RPAREN LPAREN (type (LBRACKET RBRACKET)? (COMMA type (LBRACKET RBRACKET)?)*)? RPAREN
-type           -> (One of the defined Types :P ) (STAR)*
+type           -> (UNSIGNED | STRUCT | CONST)* (One of the defined Types :P )
 #+end_src
 
 #+begin_src

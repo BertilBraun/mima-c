@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Linq;
 
 namespace mima_c.interpreter
 {
@@ -42,6 +43,18 @@ namespace mima_c.interpreter
             }
             translation.Add(symbol, value);
             return true;
+        }
+
+        public void Add(Scope scope)
+        {
+            foreach (var item in scope.translation)
+                translation.Add(item.Key, item.Value);
+        }
+
+        public void MakeScopeToStructVariables(string name)
+        {
+            foreach (Signature signature in translation.Keys)
+                (signature as VariableSignature).name = name + "." + (signature as VariableSignature).name;
         }
 
         public override string ToString()

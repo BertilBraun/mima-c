@@ -166,7 +166,7 @@ namespace mima_c
                 this.identifier = identifier;
             }
 
-            protected override object _value => identifier;
+            protected override object _value => "{0} {1}".Format(type, identifier);
         }
 
         class ArrayDecl : VariableDecl
@@ -457,12 +457,12 @@ namespace mima_c
             protected override ASTList _children => new ASTList { condition, ifBody, elseBody };
         }
 
-        class StructDecl : AST
+        class StructDef : AST
         {
             public string typeName { get; }
             public dynamic program { get; }
 
-            public StructDecl(string typeName, AST program)
+            public StructDef(string typeName, AST program)
             {
                 this.typeName = typeName;
                 this.program = program;
@@ -518,6 +518,9 @@ namespace mima_c
                 this.castType = castType;
                 this.node = node;
             }
+
+            protected override object _value => castType;
+            protected override ASTList _children => new ASTList { node };
         }
 
         class Intrinsic : AST

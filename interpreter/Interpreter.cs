@@ -12,10 +12,13 @@ namespace mima_c.interpreter
         {
             this.ast = ast;
             this.globalScope = new Scope(null);
+            customTypes = new Dictionary<string, List<dynamic>>();
         }
 
         AST ast { get; }
         Scope globalScope;
+
+        static Dictionary<string, List<dynamic>> customTypes;
 
         internal int Interpret()
         {
@@ -116,9 +119,22 @@ namespace mima_c.interpreter
         }
         public static RuntimeType Walk(VariableDecl node, Scope scope)
         {
-            Variable variable = new Variable(RuntimeType.GetTypeFromString(node.type));
-            VariableSignature variableSignature = new VariableSignature(node.identifier);
-            scope.AddSymbol(variableSignature, variable);
+            var type = RuntimeType.GetTypeFromString(node.type);
+            if (type == RuntimeType.Type.Struct)
+            {
+                Scope structValues = new Scope(null);
+                foreach (var decl in customTypes[node.type])
+                    Walk(decl, structValues);
+
+                structValues.MakeScopeToStructVariables(node.identifier);
+                scope.Add(structValues);
+            }
+            else
+            {
+                Variable variable = new Variable(type);
+                VariableSignature variableSignature = new VariableSignature(node.identifier);
+                scope.AddSymbol(variableSignature, variable);
+            }
 
             return RuntimeType.Void;
         }
@@ -399,18 +415,29 @@ namespace mima_c.interpreter
 
         public static RuntimeType Walk(Typedef node, Scope scope)
         {
+            if (customTypes.ContainsKey(node.typeName))
+                customTypes[node.alias] = customTypes[node.typeName];
             return RuntimeType.Void;
         }
 
         public static RuntimeType Walk(Cast node, Scope scope)
         {
-            throw new NotImplementedException();
+            RuntimeType variable = Walk(node.node, scope);
+            variable.SetType(RuntimeType.GetTypeFromString(node.castType));
+            return variable;
         }
 
-        public static RuntimeType Walk(StructDecl node, Scope scope)
+        public static RuntimeType Walk(StructDef node, Scope scope)
         {
+            customTypes[node.typeName] = node.program.statements;
+
+            // StructValues now contains all defined variables and default values
+            
+            //Struct variable = new Pointer(Walk(node.decl, scope));
+            //VariableSignature variableSignature = new VariableSignature(node.identifier);
+            //scope.AddSymbol(variableSignature, variable);
+
             return RuntimeType.Void;
-            throw new NotImplementedException();
         }
 
         public static RuntimeType Walk(StructAccess node, Scope scope)
