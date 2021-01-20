@@ -149,12 +149,11 @@ namespace mima_c.compiler
             ReplaceWith leftValue = Walk(node.leftNode, ref node.leftNode);
             ReplaceWith rightValue = Walk(node.rightNode, ref node.rightNode);
 
-            // TODO would be nice to have :)
-            // if (leftValue.type != rightValue.type)
-            //     throw new InvalidOperationException("Cant use different types in calculation!");
-
             if (!leftValue.isCompileTimeKnown || !rightValue.isCompileTimeKnown)
                 return ReplaceWith.None;
+
+            if (leftValue.type != rightValue.type)
+                throw new InvalidOperationException("Cant use different types in calculation!");
 
             // TODO: At the moment everything is assumed to be a int, BinaryArithms with strings will fail
             // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
@@ -196,7 +195,7 @@ namespace mima_c.compiler
         ReplaceWith Walk(ArrayDecl node, ref dynamic field)
         {
             if (!Walk(node.countExpr, ref node.countExpr).isCompileTimeKnown)
-                throw new ArgumentException("Array size declarator must be compile time known!");
+                throw new ArgumentException("Array size declarator must be compile time known! " + node.identifier);
 
             return ReplaceWith.None;
         }

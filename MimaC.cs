@@ -39,14 +39,6 @@ namespace mima_c
                 Console.WriteLine("-------------------------------------------------");
             }
 
-            // int result = new interpreter.Interpreter(ast).Interpret();
-            // if (showOuput)
-            // {
-            //     Console.WriteLine();
-            //     Console.WriteLine("Interpreting Done");
-            //     Console.WriteLine("Result: " + result.ToString());
-            // }
-
             PreCompiler.PreCompiledAST preCompiled = new PreCompiler().PreComile(ast);
             if (showOuput)
             {
@@ -55,6 +47,14 @@ namespace mima_c
                 Console.WriteLine(ast.ToString());
                 Console.WriteLine("-------------------------------------------------");
             }
+
+            // int result = new interpreter.Interpreter(preCompiled.Program).Interpret();
+            // if (showOuput)
+            // {
+            //     Console.WriteLine();
+            //     Console.WriteLine("Interpreting Done");
+            //     Console.WriteLine("Result: " + result.ToString());
+            // }
 
             Compiler.Runnable compiled = new Compiler("output.mima").Compile(preCompiled);
             if (showOuput)

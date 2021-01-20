@@ -8,6 +8,7 @@ int main() {
 	if (a + 2 * 4 == 7);
 
 	if (2 * 8 == 17 - 1) {
-		int a = 2;
+		int b = 2;
 	}
+	return 0;
 }
