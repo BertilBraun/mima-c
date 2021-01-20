@@ -23,13 +23,12 @@ namespace mima_c.compiler
         private void CreateMimaHeader()
         {
             // Add StackPointer, FramePoiter, Registers, Stack etc. to start of File
-            // Add Call to Main here aswell, 
-            // Main call should be the first thing executed, when the mima program gets run
         }
 
         // AST might have to be replaced with a PreEvaluated Intermediate Program representation
-        //   With compile time known Values replaced 
-        public Runnable Compile(AST node)
+        //   With compiletime known Values replaced 
+        //   With Types connected to Variables
+        public Runnable Compile(PreCompiler.PreCompiledAST preCompiled)
         {
             CreateMimaHeader();
 
@@ -53,7 +52,7 @@ namespace mima_c.compiler
 
             public int Run()
             {
-                Process p = Process.Start("Mima.exe", '"' + fileName + '"');
+                Process p = Process.Start("../../../compiler/Mima.exe", '"' + fileName + '"');
                 p.WaitForExit();
                 return p.ExitCode;
             }

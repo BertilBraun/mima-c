@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System;
 
 namespace mima_c.interpreter
 {
@@ -24,8 +25,7 @@ namespace mima_c.interpreter
             if (parent != null)
                 return parent.Translate(symbol);
 
-            Debug.Assert(false, "Variable or Function not defined! Signature: " + symbol.ToString());
-            return null;
+            throw new InvalidOperationException("Variable or Function not defined! Signature: " + symbol.ToString());
         }
 
         public bool AddSymbol(Signature symbol, RuntimeType value)
@@ -35,10 +35,7 @@ namespace mima_c.interpreter
                 return false;
 
             if (translation.ContainsKey(symbol))
-            {
-                Debug.Assert(false, "Variable allready defined! Signature: " + symbol.ToString());
-                return false;
-            }
+                throw new InvalidOperationException("Variable allready defined! Signature: " + symbol.ToString());
             translation.Add(symbol, value);
             return true;
         }

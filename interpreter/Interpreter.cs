@@ -26,7 +26,15 @@ namespace mima_c.interpreter
 
             FuncCall mainCall = new FuncCall("main", new List<dynamic>());
 
-            return Walk(mainCall, globalScope).Get<int>();
+            try
+            {
+                return Walk(mainCall, globalScope).Get<int>();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return 1;
+            }
         }
 
         static void Raise(AST node, Scope scope, string error)
@@ -58,22 +66,22 @@ namespace mima_c.interpreter
             }
         }
 
-        static Dictionary<Operator.Code, Func<int, int, RuntimeType>> operatorToBinaryFunc = new Dictionary<Operator.Code, Func<int, int, RuntimeType>>
+        static Dictionary<TokenType, Func<int, int, RuntimeType>> operatorToBinaryFunc = new Dictionary<TokenType, Func<int, int, RuntimeType>>
             {
-                {Operator.Code.PLUS,     (int x, int y) => new RuntimeType(x + y) },
-                {Operator.Code.MINUS,    (int x, int y) => new RuntimeType(x - y) },
-                {Operator.Code.DIVIDE,   (int x, int y) => new RuntimeType(x / y) },
-                {Operator.Code.MULTIPLY, (int x, int y) => new RuntimeType(x * y) },
-                {Operator.Code.MODULO,   (int x, int y) => new RuntimeType(x % y) },
-                {Operator.Code.LT,       (int x, int y) => new RuntimeType((x < y) ? 1 : 0) },
-                {Operator.Code.GT,       (int x, int y) => new RuntimeType((x > y) ? 1 : 0) },
-                {Operator.Code.GEQ,      (int x, int y) => new RuntimeType((x >= y) ? 1 : 0) },
-                {Operator.Code.LEQ,      (int x, int y) => new RuntimeType((x <= y) ? 1 : 0) },
-                {Operator.Code.EQ,       (int x, int y) => new RuntimeType((x == y) ? 1 : 0) },
-                {Operator.Code.NEQ,      (int x, int y) => new RuntimeType((x != y) ? 1 : 0) },
+                {TokenType.PLUS,     (int x, int y) => new RuntimeType(x + y) },
+                {TokenType.MINUS,    (int x, int y) => new RuntimeType(x - y) },
+                {TokenType.DIVIDE,   (int x, int y) => new RuntimeType(x / y) },
+                {TokenType.STAR,     (int x, int y) => new RuntimeType(x * y) },
+                {TokenType.MODULO,   (int x, int y) => new RuntimeType(x % y) },
+                {TokenType.LT,       (int x, int y) => new RuntimeType((x < y) ? 1 : 0) },
+                {TokenType.GT,       (int x, int y) => new RuntimeType((x > y) ? 1 : 0) },
+                {TokenType.GEQ,      (int x, int y) => new RuntimeType((x >= y) ? 1 : 0) },
+                {TokenType.LEQ,      (int x, int y) => new RuntimeType((x <= y) ? 1 : 0) },
+                {TokenType.EQ,       (int x, int y) => new RuntimeType((x == y) ? 1 : 0) },
+                {TokenType.NEQ,      (int x, int y) => new RuntimeType((x != y) ? 1 : 0) },
 
-                {Operator.Code.AND,      (int x, int y) => new RuntimeType((x != 0 && y != 0) ? 1 : 0) },
-                {Operator.Code.OR,       (int x, int y) => new RuntimeType((x != 0 || y != 0) ? 1 : 0) },
+                {TokenType.AND,      (int x, int y) => new RuntimeType((x != 0 && y != 0) ? 1 : 0) },
+                {TokenType.OR,       (int x, int y) => new RuntimeType((x != 0 || y != 0) ? 1 : 0) },
                 // TODO string, char with these operators
                 // {Operator.Code.EQ,       (int x, int y) => new RuntimeType((x == y) ? 1 : 0) },
                 // {Operator.Code.NEQ,      (int x, int y) => new RuntimeType((x != y) ? 1 : 0) },
@@ -85,8 +93,9 @@ namespace mima_c.interpreter
             RuntimeType leftValue = Walk(node.leftNode, scope);
             RuntimeType rightValue = Walk(node.rightNode, scope);
 
-            return operatorToBinaryFunc[node.op](leftValue.Get<int>(), rightValue.Get<int>());
+            return operatorToBinaryFunc[node.operation](leftValue.Get<int>(), rightValue.Get<int>());
         }
+
         static Dictionary<TokenType, Func<int, int>> operatorToUnaryFunc = new Dictionary<TokenType, Func<int, int>>
             {
                 {TokenType.PLUS,          (int x) => x },
@@ -313,7 +322,6 @@ namespace mima_c.interpreter
             }
             return RuntimeType.Void;
         }
-
         public static RuntimeType Walk(ArrayDecl node, Scope scope)
         {
             int size = 0;
@@ -370,7 +378,6 @@ namespace mima_c.interpreter
             leftValue.Set(value);
             return value;
         }
-
         public static RuntimeType Walk(Ternary node, Scope scope)
         {
             if (Walk(node.condition, scope).Get<int>() != 0)
@@ -378,7 +385,6 @@ namespace mima_c.interpreter
             else
                 return Walk(node.elseBlock, scope);
         }
-
         public static RuntimeType Walk(PointerDecl node, Scope scope)
         {
             Pointer variable = new Pointer(Walk(node.decl, scope));
@@ -387,13 +393,11 @@ namespace mima_c.interpreter
 
             return RuntimeType.Void;
         }
-
         public static RuntimeType Walk(PointerAccess node, Scope scope)
         {
             RuntimeType pointer = Walk(node.node, scope);
             return pointer.Get<RuntimeType>();
         }
-
         public static RuntimeType Walk(PointerLiteral node, Scope scope)
         {
             return new Pointer(Walk(node.node, scope));
@@ -414,21 +418,18 @@ namespace mima_c.interpreter
             currentValue.Set(operatorToPostfixArithm[node.operation](currentValue.Get<int>()));
             return returnValue;
         }
-
         public static RuntimeType Walk(Typedef node, Scope scope)
         {
             if (customTypes.ContainsKey(node.typeName))
                 customTypes[node.alias] = customTypes[node.typeName];
             return RuntimeType.Void;
         }
-
         public static RuntimeType Walk(Cast node, Scope scope)
         {
             RuntimeType variable = Walk(node.node, scope);
             variable.SetType(RuntimeType.GetTypeFromString(node.castType));
             return variable;
         }
-
         public static RuntimeType Walk(StructDef node, Scope scope)
         {
             customTypes[node.typeName] = node.program.statements;
@@ -441,7 +442,6 @@ namespace mima_c.interpreter
 
             return RuntimeType.Void;
         }
-
         public static RuntimeType Walk(StructAccess node, Scope scope)
         {
             if (node.operation == TokenType.DOT)
@@ -460,6 +460,10 @@ namespace mima_c.interpreter
                 throw new InvalidOperationException("Operation " + node.operation.ToString() + " for Struct Access not defined!");
         }
 
+        public static RuntimeType Walk(NoOp node, Scope scope)
+        {
+            return RuntimeType.Void;
+        }
 
         class BreakExc : Exception
         {

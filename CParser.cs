@@ -17,7 +17,7 @@ namespace mima_c
             TokenStream = tokenStream;
         }
 
-        public abstract AST Parse();
+        public abstract Program Parse();
 
         protected Token Eat(TokenType expectedToken)
         {
@@ -129,14 +129,14 @@ namespace mima_c
         {
         }
 
-        public override AST Parse()
+        public override Program Parse()
         {
             TypeScope typeScope = TypeScope.GetBasicTypeScope();
 
             Eat(TokenType.BOS);
             AST node = program(typeScope);
             Eat(TokenType.EOS);
-            return node;
+            return node as Program;
         }
 
         private bool IsType(TypeScope typeScope, int n = 0)
@@ -530,7 +530,7 @@ namespace mima_c
             if (PeekType(TokenType.IF))
                 return if_(typeScope);
 
-            AST node;
+            AST node = new NoOp();
             if (PeekType(TokenType.BREAK))
                 node = break_();
             else if (PeekType(TokenType.CONTINUE))
@@ -541,7 +541,7 @@ namespace mima_c
                 node = intrinsic(typeScope);
             else if (IsType(typeScope))
                 node = vardecl(typeScope);
-            else
+            else if (!PeekType(TokenType.SEMICOLON))
                 node = expr(typeScope);
 
             Eat(TokenType.SEMICOLON);
@@ -638,7 +638,7 @@ namespace mima_c
                 TokenType type = Peek().tokenType;
                 Eat(type);
                 AST node2 = nextNodeFunc(typeScope);
-                node1 = new BinaryArithm(Operator.Parse(type), node1, node2);
+                node1 = new BinaryArithm(type, node1, node2);
             }
 
             return node1;

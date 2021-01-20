@@ -29,6 +29,10 @@ namespace mima_c
             }
         }
 
+        class NoOp : AST
+        {
+        }
+
         class Literal : AST
         {
             public static Dictionary<TokenType, Type> tokenToType = new Dictionary<TokenType, Type>
@@ -46,8 +50,8 @@ namespace mima_c
                 // DOUBLELITERAL,
             }
 
-            public Type type { get; }
-            public string value { get; }
+            public Type type;
+            public string value;
 
             public Literal(Type type, string value)
             {
@@ -58,75 +62,27 @@ namespace mima_c
             protected override object _value => (type, value);
         }
 
-        abstract class Operator
-        {
-            static Dictionary<TokenType, Code> tokenToOperator = new Dictionary<TokenType, Code>
-            {
-                {TokenType.PLUS,     Code.PLUS        },
-                {TokenType.MINUS,    Code.MINUS         },
-                {TokenType.DIVIDE,   Code.DIVIDE          },
-                {TokenType.STAR,     Code.MULTIPLY            },
-                {TokenType.MODULO,   Code.MODULO          },
-
-                {TokenType.LT,       Code.LT      },
-                {TokenType.GT,       Code.GT      },
-                {TokenType.GEQ,      Code.GEQ       },
-                {TokenType.LEQ,      Code.LEQ       },
-                {TokenType.EQ,       Code.EQ      },
-                {TokenType.NEQ,      Code.NEQ},
-
-                {TokenType.AND,      Code.AND},
-                {TokenType.OR,       Code.OR},
-            };
-
-            public static Code Parse(TokenType type)
-            {
-                if (!tokenToOperator.ContainsKey(type))
-                    throw new ArgumentException("Tried to convert invalid Type to Operator Code: " + type.ToString());
-                return tokenToOperator[type];
-            }
-
-            public enum Code
-            {
-                PLUS,
-                MINUS,
-                DIVIDE,
-                MULTIPLY,
-                MODULO,
-
-                LT,
-                GT,
-                GEQ,
-                LEQ,
-                EQ,
-                NEQ,
-
-                AND,
-                OR,
-            }
-        }
-
         class BinaryArithm : AST
         {
-            public dynamic leftNode { get; }
-            public dynamic rightNode { get; }
-            public Operator.Code op { get; }
+            public dynamic leftNode;
+            public dynamic rightNode;
+            public TokenType operation;
 
-            public BinaryArithm(Operator.Code op, AST leftNode, AST rightNode)
+            public BinaryArithm(TokenType operation, AST leftNode, AST rightNode)
             {
-                this.op = op;
+                this.operation = operation;
                 this.leftNode = leftNode;
                 this.rightNode = rightNode;
             }
 
             protected override ASTList _children => new ASTList { leftNode, rightNode };
-            protected override string _nodeName => op.ToString();
+            protected override string _nodeName => operation.ToString();
         }
 
         class UnaryArithm : AST
         {
-            public dynamic node { get; }
-            public TokenType op { get; }
+            public dynamic node;
+            public TokenType op;
 
             public UnaryArithm(TokenType op, AST node)
             {
@@ -142,7 +98,7 @@ namespace mima_c
 
         class Variable : AST
         {
-            public string identifier { get; }
+            public string identifier;
 
             public Variable(string identifier)
             {
@@ -154,8 +110,8 @@ namespace mima_c
 
         class VariableDecl : AST
         {
-            public string type { get; }
-            public string identifier { get; }
+            public string type;
+            public string identifier;
 
             public VariableDecl(string type, string identifier)
             {
@@ -168,7 +124,7 @@ namespace mima_c
 
         class ArrayDecl : VariableDecl
         {
-            public dynamic countExpr { get; }
+            public dynamic countExpr;
 
             public ArrayDecl(string type, string identifier, AST countExpr) : base(type, identifier)
             {
@@ -180,7 +136,7 @@ namespace mima_c
 
         class PointerDecl : VariableDecl
         {
-            public dynamic decl { get; }
+            public dynamic decl;
 
             public PointerDecl(AST decl, string identifier) : base("pointer", identifier)
             {
@@ -192,7 +148,7 @@ namespace mima_c
 
         class PointerAccess : AST
         {
-            public dynamic node { get; }
+            public dynamic node;
 
             public PointerAccess(AST node)
             {
@@ -204,7 +160,7 @@ namespace mima_c
 
         class PointerLiteral : AST
         {
-            public dynamic node { get; }
+            public dynamic node;
 
             public PointerLiteral(AST node)
             {
@@ -216,9 +172,9 @@ namespace mima_c
 
         class StructAccess : AST
         {
-            public TokenType operation { get; }
-            public dynamic variable { get; }
-            public string field { get; }
+            public TokenType operation;
+            public dynamic variable;
+            public string field;
 
             public StructAccess(TokenType operation, AST variable, string field)
             {
@@ -227,14 +183,14 @@ namespace mima_c
                 this.field = field;
             }
 
-            protected override object _value => operation;
-            protected override ASTList _children => new ASTList { variable, field };
+            protected override object _value => "{0} {1}".Format(operation, field);
+            protected override ASTList _children => new ASTList { variable };
         }
 
         class VariableAssign : AST
         {
-            public dynamic identifier { get; }
-            public dynamic node { get; }
+            public dynamic identifier;
+            public dynamic node;
 
             public VariableAssign(AST identifier, AST node)
             {
@@ -243,14 +199,14 @@ namespace mima_c
             }
 
             protected override object _value => identifier;
-            protected override ASTList _children => new ASTList { node };
+            protected override ASTList _children => new ASTList { identifier, node };
         }
 
         class OperationAssign : AST
         {
-            public dynamic identifier { get; }
-            public dynamic node { get; }
-            public TokenType op { get; }
+            public dynamic identifier;
+            public dynamic node;
+            public TokenType op;
 
             public OperationAssign(AST identifier, TokenType op, AST node)
             {
@@ -260,15 +216,15 @@ namespace mima_c
             }
 
             protected override object _value => identifier;
-            protected override ASTList _children => new ASTList { node };
+            protected override ASTList _children => new ASTList { identifier, node };
             protected override string _nodeName => op.ToString();
         }
 
         class Ternary : AST
         {
-            public dynamic condition { get; }
-            public dynamic ifBlock { get; }
-            public dynamic elseBlock { get; }
+            public dynamic condition;
+            public dynamic ifBlock;
+            public dynamic elseBlock;
 
             public Ternary(AST condition, AST ifBlock, AST elseBlock)
             {
@@ -276,14 +232,14 @@ namespace mima_c
                 this.ifBlock = ifBlock;
                 this.elseBlock = elseBlock;
             }
-            protected override object _value => condition;
-            protected override ASTList _children => new ASTList { ifBlock, elseBlock };
+
+            protected override ASTList _children => new ASTList { condition, ifBlock, elseBlock };
         }
 
         class PostfixArithm : AST
         {
-            public TokenType operation { get; }
-            public dynamic node { get; }
+            public TokenType operation;
+            public dynamic node;
 
             public PostfixArithm(TokenType operation, AST node)
             {
@@ -296,8 +252,8 @@ namespace mima_c
 
         class FuncCall : AST
         {
-            public string identifier { get; }
-            public ASTList arguments { get; }
+            public string identifier;
+            public ASTList arguments;
 
             public FuncCall(string identifier, ASTList arguments)
             {
@@ -313,8 +269,8 @@ namespace mima_c
         {
             public struct Parameter
             {
-                public string type { get; }
-                public string identifier { get; }
+                public string type;
+                public string identifier;
 
                 public Parameter(string type, string identifier)
                 {
@@ -328,9 +284,9 @@ namespace mima_c
                 }
             }
 
-            public string returnType { get; }
-            public string identifier { get; }
-            public List<Parameter> parameters { get; }
+            public string returnType;
+            public string identifier;
+            public List<Parameter> parameters;
 
             public FuncDecl(string returnType, string identifier, List<Parameter> parameters)
             {
@@ -344,7 +300,7 @@ namespace mima_c
 
         class FuncDef : FuncDecl
         {
-            public BlockStatements block { get; }
+            public BlockStatements block;
 
             public FuncDef(string returnType, string identifier, List<Parameter> parameters, BlockStatements block)
                 : base(returnType, identifier, parameters)
@@ -357,8 +313,8 @@ namespace mima_c
 
         class ArrayAccess : AST
         {
-            public string identifier { get; }
-            public dynamic indexExpr { get; }
+            public string identifier;
+            public dynamic indexExpr;
 
             public ArrayAccess(string identifier, AST indexExpr)
             {
@@ -372,7 +328,7 @@ namespace mima_c
 
         class ArrayLiteral : AST
         {
-            public ASTList valueListExprs { get; }
+            public ASTList valueListExprs;
 
             public ArrayLiteral(ASTList valueListExprs)
             {
@@ -384,7 +340,7 @@ namespace mima_c
 
         class Statements : AST
         {
-            public ASTList statements { get; }
+            public ASTList statements;
 
             public Statements(ASTList statements)
             {
@@ -410,10 +366,10 @@ namespace mima_c
 
         class For : AST
         {
-            public dynamic initialization { get; }
-            public dynamic condition { get; }
-            public dynamic loopExecution { get; }
-            public dynamic body { get; }
+            public dynamic initialization;
+            public dynamic condition;
+            public dynamic loopExecution;
+            public dynamic body;
 
             public For(AST initialization, AST condition, AST loopExecution, AST body)
             {
@@ -428,8 +384,8 @@ namespace mima_c
 
         class While : AST
         {
-            public dynamic condition { get; }
-            public dynamic body { get; }
+            public dynamic condition;
+            public dynamic body;
 
             public While(AST condition, AST body)
             {
@@ -442,9 +398,9 @@ namespace mima_c
 
         class If : AST
         {
-            public dynamic condition { get; }
-            public dynamic ifBody { get; }
-            public dynamic elseBody { get; }
+            public dynamic condition;
+            public dynamic ifBody;
+            public dynamic elseBody;
 
             public If(AST condition, AST ifBody, AST elseBody)
             {
@@ -458,8 +414,8 @@ namespace mima_c
 
         class StructDef : AST
         {
-            public string typeName { get; }
-            public dynamic program { get; }
+            public string typeName;
+            public dynamic program;
 
             public StructDef(string typeName, AST program)
             {
@@ -473,8 +429,8 @@ namespace mima_c
 
         class Typedef : AST
         {
-            public string typeName { get; }
-            public string alias { get; }
+            public string typeName;
+            public string alias;
 
             public Typedef(string typeName, string alias)
             {
@@ -497,7 +453,7 @@ namespace mima_c
 
         class Return : AST
         {
-            public dynamic returnExpr { get; }
+            public dynamic returnExpr;
 
             public Return(AST returnExpr)
             {
@@ -509,8 +465,8 @@ namespace mima_c
 
         class Cast : AST
         {
-            public string castType { get; }
-            public dynamic node { get; }
+            public string castType;
+            public dynamic node;
 
             public Cast(string castType, AST node)
             {
@@ -524,8 +480,8 @@ namespace mima_c
 
         class Intrinsic : AST
         {
-            public ASTList parameters { get; }
-            public string type { get; }
+            public ASTList parameters;
+            public string type;
 
             public Intrinsic(ASTList parameters, string type)
             {

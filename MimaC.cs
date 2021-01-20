@@ -1,4 +1,5 @@
 ﻿using mima_c.ast;
+using mima_c.compiler;
 using System;
 using System.IO;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace mima_c
             if (showOuput)
                 Console.WriteLine("Lexing Done");
 
-            AST ast = new CParser(tokenStream).Parse();
+            Program ast = new CParser(tokenStream).Parse();
             if (showOuput)
             {
                 Console.WriteLine("Parsing Done");
@@ -38,15 +39,34 @@ namespace mima_c
                 Console.WriteLine("-------------------------------------------------");
             }
 
-            int result = new interpreter.Interpreter(ast).Interpret();
+            // int result = new interpreter.Interpreter(ast).Interpret();
+            // if (showOuput)
+            // {
+            //     Console.WriteLine();
+            //     Console.WriteLine("Interpreting Done");
+            //     Console.WriteLine("Result: " + result.ToString());
+            // }
+
+            PreCompiler.PreCompiledAST preCompiled = new PreCompiler().PreComile(ast);
+            if (showOuput)
+            {
+                Console.WriteLine("Pre Compilation Done");
+                Console.WriteLine("--------------------- :AST: ---------------------");
+                Console.WriteLine(ast.ToString());
+                Console.WriteLine("-------------------------------------------------");
+            }
+
+            Compiler.Runnable compiled = new Compiler("output.mima").Compile(preCompiled);
+            if (showOuput)
+                Console.WriteLine("Compilation Done");
+
+            int result = compiled.Run();
             if (showOuput)
             {
                 Console.WriteLine();
-                Console.WriteLine("Interpreting Done");
+                Console.WriteLine("Running Done");
                 Console.WriteLine("Result: " + result.ToString());
             }
-
-            result = new compiler.Compiler("output.mima").Compile(ast).Run();
 
             Environment.Exit(result);
         }

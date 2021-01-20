@@ -1,39 +1,13 @@
 ﻿
-struct S {
-    int a;
-    int* b;
-};
-
-typedef int bool;
-typedef bool bool;
-
-typedef S Struct;
-
-typedef struct {
-    bool b = 2;
-} W;
-
-typedef struct X {
-
-} X;
 
 int main() {
+	int a = 1 + 2;
 
-    bool f = 0;
-    // int a = (int)b;
+	a = 5 * 3 + 27;
 
-    int b = 3;
+	if (a + 2 * 4 == 7);
 
-    S test1;
-    Struct test2;
-    test1.a = 2;
-    test1.b = &b;
-    printf(test1.a);
-    printf(*test1.b);
-    W test3;
-
-    // if (b == 0)
-    //     printf(b);
-    printf("Done");
-    return 0;
+	if (2 * 8 == 17 - 1) {
+		int a = 2;
+	}
 }
