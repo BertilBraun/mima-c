@@ -1,8 +1,5 @@
-﻿using mima_c.interpreter;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 
 namespace mima_c
 {
@@ -49,8 +46,8 @@ namespace mima_c
                 // DOUBLELITERAL,
             }
 
-            public Type type  { get; }
-            public string value  { get; }
+            public Type type { get; }
+            public string value { get; }
 
             public Literal(Type type, string value)
             {
@@ -111,9 +108,9 @@ namespace mima_c
 
         class BinaryArithm : AST
         {
-            public dynamic leftNode  { get; }
-            public dynamic rightNode  { get; }
-            public Operator.Code op  { get; }
+            public dynamic leftNode { get; }
+            public dynamic rightNode { get; }
+            public Operator.Code op { get; }
 
             public BinaryArithm(Operator.Code op, AST leftNode, AST rightNode)
             {
@@ -128,8 +125,8 @@ namespace mima_c
 
         class UnaryArithm : AST
         {
-            public dynamic node  { get; }
-            public TokenType op  { get; }
+            public dynamic node { get; }
+            public TokenType op { get; }
 
             public UnaryArithm(TokenType op, AST node)
             {
@@ -145,7 +142,7 @@ namespace mima_c
 
         class Variable : AST
         {
-            public string identifier  { get; }
+            public string identifier { get; }
 
             public Variable(string identifier)
             {
@@ -158,7 +155,7 @@ namespace mima_c
         class VariableDecl : AST
         {
             public string type { get; }
-            public string identifier  { get; }
+            public string identifier { get; }
 
             public VariableDecl(string type, string identifier)
             {
@@ -171,7 +168,7 @@ namespace mima_c
 
         class ArrayDecl : VariableDecl
         {
-            public dynamic countExpr  { get; }
+            public dynamic countExpr { get; }
 
             public ArrayDecl(string type, string identifier, AST countExpr) : base(type, identifier)
             {
@@ -236,8 +233,8 @@ namespace mima_c
 
         class VariableAssign : AST
         {
-            public dynamic identifier  { get; }
-            public dynamic node  { get; }
+            public dynamic identifier { get; }
+            public dynamic node { get; }
 
             public VariableAssign(AST identifier, AST node)
             {
@@ -299,8 +296,8 @@ namespace mima_c
 
         class FuncCall : AST
         {
-            public string identifier  { get; }
-            public ASTList arguments  { get; }
+            public string identifier { get; }
+            public ASTList arguments { get; }
 
             public FuncCall(string identifier, ASTList arguments)
             {
@@ -331,9 +328,9 @@ namespace mima_c
                 }
             }
 
-            public string returnType  { get; }
-            public string identifier  { get; }
-            public List<Parameter> parameters  { get; }
+            public string returnType { get; }
+            public string identifier { get; }
+            public List<Parameter> parameters { get; }
 
             public FuncDecl(string returnType, string identifier, List<Parameter> parameters)
             {
@@ -347,7 +344,7 @@ namespace mima_c
 
         class FuncDef : FuncDecl
         {
-            public BlockStatements block  { get; }
+            public BlockStatements block { get; }
 
             public FuncDef(string returnType, string identifier, List<Parameter> parameters, BlockStatements block)
                 : base(returnType, identifier, parameters)
@@ -360,8 +357,8 @@ namespace mima_c
 
         class ArrayAccess : AST
         {
-            public string identifier  { get; }
-            public dynamic indexExpr  { get; }
+            public string identifier { get; }
+            public dynamic indexExpr { get; }
 
             public ArrayAccess(string identifier, AST indexExpr)
             {
@@ -375,7 +372,7 @@ namespace mima_c
 
         class ArrayLiteral : AST
         {
-            public ASTList valueListExprs  { get; }
+            public ASTList valueListExprs { get; }
 
             public ArrayLiteral(ASTList valueListExprs)
             {
@@ -413,10 +410,10 @@ namespace mima_c
 
         class For : AST
         {
-            public dynamic initialization  { get; }
-            public dynamic condition  { get; }
-            public dynamic loopExecution  { get; }
-            public dynamic body  { get; }
+            public dynamic initialization { get; }
+            public dynamic condition { get; }
+            public dynamic loopExecution { get; }
+            public dynamic body { get; }
 
             public For(AST initialization, AST condition, AST loopExecution, AST body)
             {
@@ -431,8 +428,8 @@ namespace mima_c
 
         class While : AST
         {
-            public dynamic condition  { get; }
-            public dynamic body  { get; }
+            public dynamic condition { get; }
+            public dynamic body { get; }
 
             public While(AST condition, AST body)
             {
@@ -445,9 +442,9 @@ namespace mima_c
 
         class If : AST
         {
-            public dynamic condition  { get; }
-            public dynamic ifBody  { get; }
-            public dynamic elseBody  { get; }
+            public dynamic condition { get; }
+            public dynamic ifBody { get; }
+            public dynamic elseBody { get; }
 
             public If(AST condition, AST ifBody, AST elseBody)
             {

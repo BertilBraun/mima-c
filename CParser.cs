@@ -257,7 +257,7 @@ namespace mima_c
                 string alias = EatV(TokenType.IDENTIFIER);
                 typeScope.Typedef(identifier, alias);
 
-                return new Statements(new ASTList { new Typedef(identifier, alias), structDecl });
+                return new Statements(new ASTList { structDecl, new Typedef(identifier, alias) });
             }
         }
 
@@ -303,7 +303,7 @@ namespace mima_c
             varType = new string('*', starCount) + varType;
             string identifier = EatV(TokenType.IDENTIFIER);
             AST node;
-            
+
             if (PeekEatIf(TokenType.LBRACKET))
             {
                 AST countExpr = null;

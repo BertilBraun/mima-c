@@ -1,9 +1,7 @@
 ﻿using mima_c.ast;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace mima_c.interpreter
 {

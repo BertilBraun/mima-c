@@ -1,0 +1,49 @@
+﻿using mima_c.ast;
+using System.Diagnostics;
+using System.IO;
+
+namespace mima_c.compiler
+{
+    class Compiler
+    {
+        StreamWriter outputFile { get; }
+        string fileToCompileTo { get; }
+
+        public Compiler(string fileToCompileTo)
+        {
+            this.outputFile = File.CreateText(fileToCompileTo);
+            this.fileToCompileTo = fileToCompileTo;
+        }
+
+        private void AddCommand(string command)
+        {
+            outputFile.WriteLine(command);
+        }
+
+        public Runnable Compile(AST node)
+        {
+
+
+            outputFile.Close();
+            return new Runnable(fileToCompileTo);
+        }
+
+        public class Runnable
+        {
+            string fileName { get; }
+
+            public Runnable(string fileName)
+            {
+                this.fileName = fileName;
+            }
+
+            public int Run()
+            {
+                Process p = Process.Start("Mima.exe", '"' + fileName + '"');
+                p.WaitForExit();
+                return p.ExitCode;
+            }
+        }
+
+    }
+}

@@ -1,9 +1,7 @@
 ﻿using mima_c.ast;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace mima_c.interpreter
 {
@@ -31,7 +29,7 @@ namespace mima_c.interpreter
         public Type type { get; private set; }
         protected dynamic value;
 
-        private bool assignable { get;  set; } = false;
+        private bool assignable { get; set; } = false;
 
         public RuntimeType(int value) : this(Type.Int, value)
         {

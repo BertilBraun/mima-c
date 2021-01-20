@@ -15,7 +15,7 @@ namespace mima_c
                 file = args[Array.IndexOf(args, "--file") + 1];
             else
                 file = "../../../src/test.c";
-            
+
             string inputText = File.ReadAllText(file);
 
             string preprozessedText = new Preprozessor(inputText).GetProcessedText();
@@ -45,6 +45,8 @@ namespace mima_c
                 Console.WriteLine("Interpreting Done");
                 Console.WriteLine("Result: " + result.ToString());
             }
+
+            result = new compiler.Compiler("output.mima").Compile(ast).Run();
 
             Environment.Exit(result);
         }

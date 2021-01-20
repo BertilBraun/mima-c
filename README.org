@@ -29,7 +29,7 @@
 - [X] Functions
 - [X] Pointer  missing: (Pointer arithmetic expressions | Array to Pointer Decl | Array index with Pointer)
 - [X] Cast
-- [ ] Struct
+- [X] Struct   missing: modifiers like struct, unsigned, const etc. in front of variable declarations
 - [X] Typedef
 
 ** Sonstiges
