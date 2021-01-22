@@ -1,6 +1,7 @@
 ﻿using mima_c.ast;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace mima_c.compiler
@@ -239,7 +240,8 @@ namespace mima_c.compiler
             dynamic block = node.block;
             Walk(node.block, ref block);
             node.block = block;
-            node.block.statements.Add(new Return(new NoOp()));
+            if (!(node.block.statements.Last() is Return))
+                node.block.statements.Add(new Return(new NoOp()));
 
             return ReplaceWith.None;
         }

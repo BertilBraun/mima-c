@@ -4,10 +4,12 @@
     {
         public class Mima
         {
+            // Defined in Mima.h
             public static int InstructionPointer = 1048500;
         }
 
         public static int InitialStackPosition = 0;
+        // Each offset by 4 from InstructionPointer
         public static int StackPointerPosition = 1048504;
         public static int FramePointerPosition = 1048508;
         public static int[] RegisterPostions = new int[]

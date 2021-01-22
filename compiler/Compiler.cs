@@ -143,7 +143,8 @@ namespace mima_c.compiler
         {
             AddDescription(node);
             // return address
-            AddCommand("LDV " + Settings.Mima.InstructionPointer);
+            AddCommand("LDC " + (16 + node.arguments.Count * 6)); // Offset to return to after JMP 
+            AddCommand("ADD " + Settings.Mima.InstructionPointer);
             Push();
             // old FramePointerPosition
             AddCommand("LDV " + Settings.FramePointerPosition);
@@ -206,6 +207,7 @@ namespace mima_c.compiler
         {
             AddDescription(node);
             Walk(node.returnExpr, scope);
+            AddCommand("");
 
             // store return value
             AddCommand("STV " + Settings.RegisterPostions[0]);
@@ -220,11 +222,14 @@ namespace mima_c.compiler
 
             // return to call address
             Pop();
-            AddCommand("STV " + Settings.Mima.InstructionPointer);
+            AddCommand("STV " + Settings.RegisterPostions[1]);
 
             // push return value to Stack
             AddCommand("LDV " + Settings.RegisterPostions[0]);
             Push();
+
+            AddCommand("LDV " + Settings.RegisterPostions[1]);
+            AddCommand("STV " + Settings.Mima.InstructionPointer);
         }
 
         void Walk(NoOp node, Scope scope)
@@ -242,6 +247,8 @@ namespace mima_c.compiler
 
             public int Run()
             {
+                Console.WriteLine(File.ReadAllText(fileName));
+
                 Process p = Process.Start("../../../compiler/Mima.exe", '"' + fileName + '"');
                 p.WaitForExit();
                 return p.ExitCode;
