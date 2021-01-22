@@ -44,7 +44,10 @@ namespace mima_c
             {
                 Console.WriteLine("Pre Compilation Done");
                 Console.WriteLine("--------------------- :AST: ---------------------");
-                Console.WriteLine(ast.ToString());
+                Console.WriteLine(preCompiled.Program.ToString());
+                Console.WriteLine("------------------ :FUNCTIONS: ------------------");
+                foreach (var func in preCompiled.Functions)
+                    Console.WriteLine(func.ToString());
                 Console.WriteLine("-------------------------------------------------");
             }
 

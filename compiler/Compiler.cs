@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace mima_c.compiler
 {
@@ -42,6 +43,13 @@ namespace mima_c.compiler
             try
             {
                 Walk(preCompiled.Program, globalScope);
+
+                AddCommand("");
+                AddCommand("HALT // Program End");
+
+                foreach (var function in preCompiled.Functions)
+                    Walk(function, globalScope);
+
             }
             catch (Exception e)
             {
@@ -56,22 +64,30 @@ namespace mima_c.compiler
         public void Push(int size = 1)
         {
             Scope.stackPointer += size;
+
+            AddCommand("");
+            AddCommand("// Push");
             AddCommand("STV " + Settings.RegisterPostions[0]);
             AddCommand("LDC " + size);
             AddCommand("ADD " + Settings.StackPointerPosition);
             AddCommand("STV " + Settings.StackPointerPosition);
             AddCommand("LDV " + Settings.RegisterPostions[0]);
             AddCommand("STIV " + Settings.StackPointerPosition);
+            AddCommand("");
         }
 
         public void Pop(int size = 1)
         {
+            AddCommand("");
+            AddCommand("// Pop");
             AddCommand("LDIV " + Settings.StackPointerPosition);
             AddCommand("STV " + Settings.RegisterPostions[0]);
             AddCommand("LDC " + (-size));
             AddCommand("ADD " + Settings.StackPointerPosition);
             AddCommand("STV " + Settings.StackPointerPosition);
             AddCommand("LDV " + Settings.RegisterPostions[0]);
+            AddCommand("");
+
             Scope.stackPointer -= size;
         }
 
@@ -230,6 +246,28 @@ namespace mima_c.compiler
 
             AddCommand("LDV " + Settings.RegisterPostions[1]);
             AddCommand("STV " + Settings.Mima.InstructionPointer);
+        }
+        void Walk(Intrinsic node, Scope scope)
+        {
+            if (node.type == "printf")
+            {
+                AddDescription(node);
+                if (node.parameters.Count == 1)
+                    Walk(node.parameters.First(), scope);
+                AddCommand("PRINTAKKU");
+                // if (node.parameters.Count == 0)
+                //     Raise(node, scope, "printf needs at least one parameter");
+                // //  TODO: implement proper printf
+                // List<dynamic> parameters = new List<dynamic>(node.parameters.Count);
+                // foreach (var param in node.parameters)
+                //     parameters.Add(Walk(param, scope).GetUnderlyingValue_DoNotCallThisMethodUnderAnyCircumstances());
+                // 
+                // string formatString = parameters[0].ToString();
+                // parameters.RemoveAt(0);
+                // 
+                // string ouput = formatString.Format(parameters.ToArray());
+                // Console.WriteLine("printf: \"" + ouput + "\"");
+            }
         }
 
         void Walk(NoOp node, Scope scope)

@@ -6,11 +6,6 @@ using System.Text;
 
 namespace mima_c.compiler
 {
-    public class VariableScope
-    {
-
-    }
-
     public class ReplaceWith
     {
         public enum Type
@@ -69,10 +64,12 @@ namespace mima_c.compiler
             // Dictionary<ast.AST, Dictionary<string, Variable>> scopeVariables;
 
             public Program Program { get; }
+            public List<FuncDef> Functions { get; }
 
-            public PreCompiledAST(Program program)
+            public PreCompiledAST(Program program, List<FuncDef> functions)
             {
                 Program = program;
+                Functions = functions;
             }
 
         }
@@ -81,17 +78,21 @@ namespace mima_c.compiler
         {
         }
 
-        static Dictionary<string, List<dynamic>> customTypes;
+        Dictionary<string, List<dynamic>> customTypes;
+        List<FuncDef> functions;
 
         public PreCompiledAST PreComile(Program ast)
         {
             customTypes = new Dictionary<string, List<dynamic>>();
+            functions = new List<FuncDef>();
+
+            // add main call as last element to be executed
             ast.statements.Add(new FuncCall("main", new List<dynamic>()));
 
             dynamic preCompiled = ast;
             Walk(ast, ref preCompiled);
 
-            return new PreCompiledAST(preCompiled);
+            return new PreCompiledAST(preCompiled, functions);
         }
 
         void WalkList(List<dynamic> values)
@@ -243,6 +244,8 @@ namespace mima_c.compiler
             if (!(node.block.statements.Last() is Return))
                 node.block.statements.Add(new Return(new NoOp()));
 
+            functions.Add(node);
+            field = new NoOp();
             return ReplaceWith.None;
         }
         ReplaceWith Walk(Statements node, ref dynamic field)
