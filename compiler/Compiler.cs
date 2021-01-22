@@ -61,31 +61,31 @@ namespace mima_c.compiler
             return new Runnable(fileToCompileTo);
         }
 
-        public void Push(int size = 1)
+        public void Push(Scope scope, int size = 1)
         {
             Scope.stackPointer += size;
 
             AddCommand("");
             AddCommand("// Push");
-            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("STV " + Settings.PushPopPointerPosition);
             AddCommand("LDC " + size);
             AddCommand("ADD " + Settings.StackPointerPosition);
             AddCommand("STV " + Settings.StackPointerPosition);
-            AddCommand("LDV " + Settings.RegisterPostions[0]);
+            AddCommand("LDV " + Settings.PushPopPointerPosition);
             AddCommand("STIV " + Settings.StackPointerPosition);
             AddCommand("");
         }
 
-        public void Pop(int size = 1)
+        public void Pop(Scope scope, int size = 1)
         {
             AddCommand("");
             AddCommand("// Pop");
             AddCommand("LDIV " + Settings.StackPointerPosition);
-            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("STV " + Settings.PushPopPointerPosition);
             AddCommand("LDC " + (-size));
             AddCommand("ADD " + Settings.StackPointerPosition);
             AddCommand("STV " + Settings.StackPointerPosition);
-            AddCommand("LDV " + Settings.RegisterPostions[0]);
+            AddCommand("LDV " + Settings.PushPopPointerPosition);
             AddCommand("");
 
             Scope.stackPointer -= size;
@@ -122,8 +122,8 @@ namespace mima_c.compiler
 
             AddCommand("LDC " + addr);
             AddCommand("ADD " + Settings.FramePointerPosition);
-            AddCommand("STV " + Settings.RegisterPostions[0]);
-            AddCommand("LDIV " + Settings.RegisterPostions[0]);
+            AddCommand("STV " + Settings.LastAddrPointerPosition);
+            AddCommand("LDIV " + Settings.LastAddrPointerPosition);
         }
         // PUSH node.type.size
         // Store location of value in scope, to access addr later
@@ -133,7 +133,9 @@ namespace mima_c.compiler
             // TODO get TypeSize from node.type
             // TODO how are structs supposed to work?
             scope.AddVariable(node.identifier);
-            Push();
+            AddCommand("LDV " + Settings.StackPointerPosition);
+            AddCommand("STV " + Settings.LastAddrPointerPosition);
+            Push(scope);
 
             //if (type == RuntimeType.Type.Struct)
             //    Scope structValues = new Scope(null);
@@ -147,24 +149,28 @@ namespace mima_c.compiler
         void Walk(VariableAssign node, Scope scope)
         {
             AddDescription(node);
-            // TODO This doesnt work for sure
-            //      This gets the value at node.identifier
-            //      Should store addr of node.identifier in akku
+
             Walk(node.identifier, scope);
-            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("");
+            AddCommand("LDV " + Settings.LastAddrPointerPosition);
+            AddCommand("STV " + Settings.RegisterPostions[scope.currentRegisterInUse++]);
             Walk(node.node, scope);
-            AddCommand("STIV " + Settings.RegisterPostions[0]);
+            AddCommand("");
+            AddCommand("STIV " + Settings.RegisterPostions[--scope.currentRegisterInUse]);
         }
         void Walk(FuncCall node, Scope scope)
         {
             AddDescription(node);
             // return address
-            AddCommand("LDC " + (16 + node.arguments.Count * 6)); // Offset to return to after JMP 
+            // Offset to return to after JMP... 
+            // Arguments could also be expr, therefore more than 6 commands long,
+            // then reset addr ist set back to the wrong location
+            AddCommand("LDC " + (16 + node.arguments.Count * 6));
             AddCommand("ADD " + Settings.Mima.InstructionPointer);
-            Push();
+            Push(scope);
             // old FramePointerPosition
             AddCommand("LDV " + Settings.FramePointerPosition);
-            Push();
+            Push(scope);
 
             // set new FramePointerPosition
             AddCommand("LDV " + Settings.StackPointerPosition);
@@ -173,7 +179,7 @@ namespace mima_c.compiler
             foreach (var argument in node.arguments)
             {
                 Walk(argument, scope);
-                Push();
+                Push(scope);
             }
 
             AddCommand("JMP " + node.identifier);
@@ -226,25 +232,25 @@ namespace mima_c.compiler
             AddCommand("");
 
             // store return value
-            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("STV " + Settings.RegisterPostions[scope.currentRegisterInUse]);
 
             // reset StackPointerPosition
             AddCommand("LDV " + Settings.FramePointerPosition);
             AddCommand("STV " + Settings.StackPointerPosition);
 
             // restore FramePointerPosition
-            Pop();
+            Pop(scope);
             AddCommand("STV " + Settings.FramePointerPosition);
 
             // return to call address
-            Pop();
-            AddCommand("STV " + Settings.RegisterPostions[1]);
+            Pop(scope);
+            AddCommand("STV " + Settings.RegisterPostions[scope.currentRegisterInUse + 1]);
 
             // push return value to Stack
-            AddCommand("LDV " + Settings.RegisterPostions[0]);
-            Push();
+            AddCommand("LDV " + Settings.RegisterPostions[scope.currentRegisterInUse]);
+            Push(scope);
 
-            AddCommand("LDV " + Settings.RegisterPostions[1]);
+            AddCommand("LDV " + Settings.RegisterPostions[scope.currentRegisterInUse + 1]);
             AddCommand("STV " + Settings.Mima.InstructionPointer);
         }
         void Walk(Intrinsic node, Scope scope)
@@ -255,18 +261,6 @@ namespace mima_c.compiler
                 if (node.parameters.Count == 1)
                     Walk(node.parameters.First(), scope);
                 AddCommand("PRINTAKKU");
-                // if (node.parameters.Count == 0)
-                //     Raise(node, scope, "printf needs at least one parameter");
-                // //  TODO: implement proper printf
-                // List<dynamic> parameters = new List<dynamic>(node.parameters.Count);
-                // foreach (var param in node.parameters)
-                //     parameters.Add(Walk(param, scope).GetUnderlyingValue_DoNotCallThisMethodUnderAnyCircumstances());
-                // 
-                // string formatString = parameters[0].ToString();
-                // parameters.RemoveAt(0);
-                // 
-                // string ouput = formatString.Format(parameters.ToArray());
-                // Console.WriteLine("printf: \"" + ouput + "\"");
             }
         }
 

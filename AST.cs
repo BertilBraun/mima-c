@@ -201,7 +201,6 @@ namespace mima_c
                 this.node = node;
             }
 
-            protected override object _value => identifier;
             protected override ASTList _children => new ASTList { identifier, node };
         }
 

@@ -26,12 +26,16 @@ namespace mima_c.compiler
         private Dictionary<string, TranslationType> translation;
         private int framePointer;
 
+        public int currentRegisterInUse = 0;
+
         public Scope(Scope parent = null)
         {
             this.parent = parent;
             this.customTypes = new Dictionary<string, List<dynamic>>();
             this.translation = new Dictionary<string, TranslationType>();
             this.framePointer = stackPointer;
+            if (parent != null)
+                currentRegisterInUse = parent.currentRegisterInUse;
         }
 
         public void AddVariable(string variableName, int size = 1)
