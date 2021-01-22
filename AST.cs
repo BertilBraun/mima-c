@@ -13,13 +13,16 @@ namespace mima_c
             protected virtual ASTList _children { get; }
             protected virtual string _nodeName => GetType().Name;
 
+            public string Representation()
+            {
+                if (_value != null)
+                    return "[{0}] ({1}): ".Format(_nodeName, _value);
+                else
+                    return "[{0}]: ".Format(_nodeName);
+            }
             public override string ToString()
             {
-                string result;
-                if (_value != null)
-                    result = "[{0}] ({1}): ".Format(_nodeName, _value);
-                else
-                    result = "[{0}]: ".Format(_nodeName);
+                string result = Representation();
 
                 if (_children != null)
                     foreach (var child in _children)

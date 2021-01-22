@@ -212,7 +212,7 @@ namespace mima_c.compiler
         }
         ReplaceWith Walk(VariableDecl node, ref dynamic field)
         {
-            return ReplaceWith.None;
+            return new ReplaceWith(ReplaceWith.GetTypeFromString(node.type), null);
         }
         ReplaceWith Walk(VariableAssign node, ref dynamic field)
         {
@@ -223,7 +223,7 @@ namespace mima_c.compiler
             // if (val.type != value.type)
             //     throw new InvalidCastException("Type values do not match: " + val.type + " " + value.type);
 
-            return ReplaceWith.None;
+            return value;
         }
         ReplaceWith Walk(FuncCall node, ref dynamic field)
         {
@@ -239,6 +239,7 @@ namespace mima_c.compiler
             dynamic block = node.block;
             Walk(node.block, ref block);
             node.block = block;
+            node.block.statements.Add(new Return(new NoOp()));
 
             return ReplaceWith.None;
         }

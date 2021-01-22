@@ -1,14 +1,6 @@
 ﻿
-
 int main() {
-	int a = 1 + 2;
-
-	a = 5 * 3 + 27;
-
-	if (a + 2 * 4 == 7);
-
-	if (2 * 8 == 17 - 1) {
-		int b = 2;
-	}
+	int a = 1;
+	int b = a;
 	return 0;
 }

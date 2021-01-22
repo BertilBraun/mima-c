@@ -1,4 +1,5 @@
 ﻿using mima_c.ast;
+using System;
 using System.Diagnostics;
 using System.IO;
 
@@ -15,9 +16,17 @@ namespace mima_c.compiler
             this.fileToCompileTo = fileToCompileTo;
         }
 
+        private void AddDescription(AST node)
+        {
+            AddCommand("");
+            AddCommand("// " + node.Representation());
+        }
         private void AddCommand(string command)
         {
-            outputFile.WriteLine(command);
+            if (command.Contains(':'))
+                outputFile.WriteLine(command);
+            else
+                outputFile.WriteLine('\t' + command);
         }
 
         private void CreateMimaHeader()
@@ -25,20 +34,201 @@ namespace mima_c.compiler
             // Add StackPointer, FramePoiter, Registers, Stack etc. to start of File
         }
 
-        // AST might have to be replaced with a PreEvaluated Intermediate Program representation
-        //   With compiletime known Values replaced 
-        //   With Types connected to Variables
         public Runnable Compile(PreCompiler.PreCompiledAST preCompiled)
         {
             CreateMimaHeader();
 
-            // Compile Here
-
-            // Setup Function jumps
-            // Create Statements in Function bodies etc.
+            Scope globalScope = new Scope();
+            try
+            {
+                Walk(preCompiled.Program, globalScope);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Compilation Error:");
+                Console.WriteLine(e.Message);
+            }
 
             outputFile.Close();
             return new Runnable(fileToCompileTo);
+        }
+
+        public void Push(int size = 1)
+        {
+            Scope.stackPointer += size;
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("LDC " + size);
+            AddCommand("ADD " + Settings.StackPointerPosition);
+            AddCommand("STV " + Settings.StackPointerPosition);
+            AddCommand("LDV " + Settings.RegisterPostions[0]);
+            AddCommand("STIV " + Settings.StackPointerPosition);
+        }
+
+        public void Pop(int size = 1)
+        {
+            AddCommand("LDIV " + Settings.StackPointerPosition);
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("LDC " + (-size));
+            AddCommand("ADD " + Settings.StackPointerPosition);
+            AddCommand("STV " + Settings.StackPointerPosition);
+            AddCommand("LDV " + Settings.RegisterPostions[0]);
+            Scope.stackPointer -= size;
+        }
+
+        void Walk(AST node, Scope scope)
+        {
+            throw new NotSupportedException(node.GetType().Name + " is not yet Implemented!");
+        }
+
+        // LOAD value to Akku
+        void Walk(Literal node, Scope scope)
+        {
+            AddDescription(node);
+            // No need for explicit error handling. If they can't be converted
+            // it's a compiler bug
+            switch (node.type)
+            {
+                case Literal.Type.INTLITERAL:
+                    AddCommand("LDC " + node.value);
+                    break;
+                default:
+                    throw new NotImplementedException("Not implemented Type of Literal: " + node.type.ToString());
+            }
+        }
+        // LDC addr
+        // ADD FramePointerLocation
+        // STV Register
+        // LDIV Register
+        void Walk(Variable node, Scope scope)
+        {
+            AddDescription(node);
+            int addr = scope.GetAddr(node.identifier);
+
+            AddCommand("LDC " + addr);
+            AddCommand("ADD " + Settings.FramePointerPosition);
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("LDIV " + Settings.RegisterPostions[0]);
+        }
+        // PUSH node.type.size
+        // Store location of value in scope, to access addr later
+        void Walk(VariableDecl node, Scope scope)
+        {
+            AddDescription(node);
+            // TODO get TypeSize from node.type
+            // TODO how are structs supposed to work?
+            scope.AddVariable(node.identifier);
+            Push();
+
+            //if (type == RuntimeType.Type.Struct)
+            //    Scope structValues = new Scope(null);
+            //    foreach (var decl in customTypes[node.type])
+            //        Walk(decl, structValues);
+        }
+        // LOAD node.identifier
+        // STV Register
+        // LOAD node.value
+        // STIV Register
+        void Walk(VariableAssign node, Scope scope)
+        {
+            AddDescription(node);
+            // TODO This doesnt work for sure
+            //      This gets the value at node.identifier
+            //      Should store addr of node.identifier in akku
+            Walk(node.identifier, scope);
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+            Walk(node.node, scope);
+            AddCommand("STIV " + Settings.RegisterPostions[0]);
+        }
+        void Walk(FuncCall node, Scope scope)
+        {
+            AddDescription(node);
+            // return address
+            AddCommand("LDV " + Settings.Mima.InstructionPointer);
+            Push();
+            // old FramePointerPosition
+            AddCommand("LDV " + Settings.FramePointerPosition);
+            Push();
+
+            // set new FramePointerPosition
+            AddCommand("LDV " + Settings.StackPointerPosition);
+            AddCommand("STV " + Settings.FramePointerPosition);
+
+            foreach (var argument in node.arguments)
+            {
+                Walk(argument, scope);
+                Push();
+            }
+
+            AddCommand("JMP " + node.identifier);
+        }
+        // Irrelevant?
+        void Walk(FuncDecl node, Scope scope)
+        {
+            //Function function = new Function(node.returnType.GetRuntimeType());
+
+            //List<FunctionParam> parameteres = new List<FunctionParam>();
+            //foreach (var param in node.parameters)
+            //    parameteres.Add(new FunctionParam(param.type.GetRuntimeType(), param.identifier));
+
+            //FunctionSignature signature = new FunctionSignature(node.identifier, parameteres);
+
+            //scope.AddSymbol(signature, function);
+        }
+        void Walk(FuncDef node, Scope scope)
+        {
+            AddDescription(node);
+            // TODO Make sure, that params are at correct position in funcScope
+
+            Scope funcScope = new Scope(scope);
+            foreach (var param in node.parameters)
+                funcScope.AddVariable(param.identifier);
+
+            AddCommand(node.identifier + ":");
+            Walk(node.block, funcScope);
+            // Precompiler ensures, that a return statement is at the end of the node.block
+        }
+        void Walk(Statements node, Scope scope)
+        {
+            foreach (var statement in node.statements)
+                Walk(statement, scope);
+        }
+        void Walk(BlockStatements node, Scope scope, Scope copyScope = null)
+        {
+            Scope blockScope = (copyScope != null) ? copyScope : scope;
+
+            Walk((Statements)node, blockScope);
+        }
+        void Walk(Program node, Scope scope)
+        {
+            Walk((Statements)node, scope);
+        }
+        void Walk(Return node, Scope scope)
+        {
+            AddDescription(node);
+            Walk(node.returnExpr, scope);
+
+            // store return value
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+
+            // reset StackPointerPosition
+            AddCommand("LDV " + Settings.FramePointerPosition);
+            AddCommand("STV " + Settings.StackPointerPosition);
+
+            // restore FramePointerPosition
+            Pop();
+            AddCommand("STV " + Settings.FramePointerPosition);
+
+            // return to call address
+            Pop();
+            AddCommand("STV " + Settings.Mima.InstructionPointer);
+
+            // push return value to Stack
+            AddCommand("LDV " + Settings.RegisterPostions[0]);
+            Push();
+        }
+
+        void Walk(NoOp node, Scope scope)
+        {
         }
 
         public class Runnable
@@ -57,6 +247,5 @@ namespace mima_c.compiler
                 return p.ExitCode;
             }
         }
-
     }
 }
