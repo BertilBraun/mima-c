@@ -95,6 +95,9 @@ namespace mima_c.compiler
         {
             throw new NotSupportedException(node.GetType().Name + " is not yet Implemented!");
         }
+        void Walk(NoOp node, Scope scope)
+        {
+        }
 
         // LOAD value to Akku
         void Walk(Literal node, Scope scope)
@@ -263,9 +266,22 @@ namespace mima_c.compiler
                 AddCommand("PRINTAKKU");
             }
         }
-
-        void Walk(NoOp node, Scope scope)
+        void Walk(BinaryArithm node, Scope scope)
         {
+            AddDescription(node);
+
+            // TODO: At the moment everything is assumed to be a int, BinaryArithms with strings will fail
+            // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
+            Walk(node.leftNode, scope);
+            AddCommand("");
+            AddCommand("STV " + Settings.RegisterPostions[scope.currentRegisterInUse++]);
+            Walk(node.rightNode, scope);
+            AddCommand("");
+
+            if (node.operation == TokenType.PLUS)
+                AddCommand("ADD " + Settings.RegisterPostions[--scope.currentRegisterInUse]);
+            else
+                throw new InvalidOperationException("Operation " + node.operation + " not Implemented!");
         }
 
         public class Runnable
