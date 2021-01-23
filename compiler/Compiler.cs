@@ -32,6 +32,9 @@ namespace mima_c.compiler
 
         private void CreateMimaHeader()
         {
+            AddCommand("LDC 0");
+            AddCommand("STV " + Settings.StackPointerPosition);
+            AddCommand("STV " + Settings.FramePointerPosition);
             // Add StackPointer, FramePoiter, Registers, Stack etc. to start of File
         }
 
@@ -61,31 +64,63 @@ namespace mima_c.compiler
             return new Runnable(fileToCompileTo);
         }
 
-        public void Push(Scope scope, int size = 1)
+        public void Push(int addr, int size = 1)
         {
             Scope.stackPointer += size;
 
             AddCommand("");
             AddCommand("// Push");
-            AddCommand("STV " + Settings.PushPopPointerPosition);
+
+            // Store Akku value 
+            if (addr == Settings.AkkuPosition)
+                AddCommand("STV " + Settings.PushPopPointerPosition);
+
+            // increment stack pointer
             AddCommand("LDC " + size);
             AddCommand("ADD " + Settings.StackPointerPosition);
             AddCommand("STV " + Settings.StackPointerPosition);
-            AddCommand("LDV " + Settings.PushPopPointerPosition);
+
+            // Load value to be stored
+            if (addr == Settings.AkkuPosition)
+                AddCommand("LDV " + Settings.PushPopPointerPosition);
+            else
+                AddCommand("LDV " + addr);
+
+            // Set value
             AddCommand("STIV " + Settings.StackPointerPosition);
             AddCommand("");
         }
 
-        public void Pop(Scope scope, int size = 1)
+        public void Pop(int addr, int size = 1)
         {
             AddCommand("");
             AddCommand("// Pop");
-            AddCommand("LDIV " + Settings.StackPointerPosition);
-            AddCommand("STV " + Settings.PushPopPointerPosition);
-            AddCommand("LDC " + (-size));
-            AddCommand("ADD " + Settings.StackPointerPosition);
-            AddCommand("STV " + Settings.StackPointerPosition);
-            AddCommand("LDV " + Settings.PushPopPointerPosition);
+            if (addr == Settings.AkkuPosition)
+            {
+                AddCommand("LDIV " + Settings.StackPointerPosition);
+                AddCommand("STV " + Settings.PushPopPointerPosition);
+                AddCommand("LDC " + (-size));
+                AddCommand("ADD " + Settings.StackPointerPosition);
+                AddCommand("STV " + Settings.StackPointerPosition);
+                AddCommand("LDV " + Settings.PushPopPointerPosition);
+            }
+            else
+            {
+                // store akku value
+                AddCommand("STV " + Settings.PushPopPointerPosition);
+
+                // Load value into addr
+                AddCommand("LDIV " + Settings.StackPointerPosition);
+                AddCommand("STV " + addr);
+
+                // decrement Stack Pointer
+                AddCommand("LDC " + (-size));
+                AddCommand("ADD " + Settings.StackPointerPosition);
+                AddCommand("STV " + Settings.StackPointerPosition);
+
+                // reload akku value
+                AddCommand("LDV " + Settings.PushPopPointerPosition);
+            }
             AddCommand("");
 
             Scope.stackPointer -= size;
@@ -135,10 +170,8 @@ namespace mima_c.compiler
             AddDescription(node);
             // TODO get TypeSize from node.type
             // TODO how are structs supposed to work?
+            Push(Settings.AkkuPosition);
             scope.AddVariable(node.identifier);
-            AddCommand("LDV " + Settings.StackPointerPosition);
-            AddCommand("STV " + Settings.LastAddrPointerPosition);
-            Push(scope);
 
             //if (type == RuntimeType.Type.Struct)
             //    Scope structValues = new Scope(null);
@@ -153,13 +186,17 @@ namespace mima_c.compiler
         {
             AddDescription(node);
 
+            Push(Settings.RegisterPostions[0]);
+
             Walk(node.identifier, scope);
             AddCommand("");
             AddCommand("LDV " + Settings.LastAddrPointerPosition);
-            AddCommand("STV " + Settings.RegisterPostions[scope.currentRegisterInUse++]);
+            AddCommand("STV " + Settings.RegisterPostions[0]);
             Walk(node.node, scope);
             AddCommand("");
-            AddCommand("STIV " + Settings.RegisterPostions[--scope.currentRegisterInUse]);
+            AddCommand("STIV " + Settings.RegisterPostions[0]);
+
+            Pop(Settings.RegisterPostions[0]);
         }
         void Walk(FuncCall node, Scope scope)
         {
@@ -168,12 +205,12 @@ namespace mima_c.compiler
             // Offset to return to after JMP... 
             // Arguments could also be expr, therefore more than 6 commands long,
             // then reset addr ist set back to the wrong location
-            AddCommand("LDC " + (16 + node.arguments.Count * 6));
+            AddCommand("LDC " + (14 + node.arguments.Count * 6));
             AddCommand("ADD " + Settings.Mima.InstructionPointer);
-            Push(scope);
+            Push(Settings.AkkuPosition);
+
             // old FramePointerPosition
-            AddCommand("LDV " + Settings.FramePointerPosition);
-            Push(scope);
+            Push(Settings.FramePointerPosition);
 
             // set new FramePointerPosition
             AddCommand("LDV " + Settings.StackPointerPosition);
@@ -182,23 +219,15 @@ namespace mima_c.compiler
             foreach (var argument in node.arguments)
             {
                 Walk(argument, scope);
-                Push(scope);
+                Push(Settings.AkkuPosition);
             }
 
             AddCommand("JMP " + node.identifier);
+            Pop(Settings.AkkuPosition);
         }
-        // Irrelevant?
         void Walk(FuncDecl node, Scope scope)
         {
-            //Function function = new Function(node.returnType.GetRuntimeType());
-
-            //List<FunctionParam> parameteres = new List<FunctionParam>();
-            //foreach (var param in node.parameters)
-            //    parameteres.Add(new FunctionParam(param.type.GetRuntimeType(), param.identifier));
-
-            //FunctionSignature signature = new FunctionSignature(node.identifier, parameteres);
-
-            //scope.AddSymbol(signature, function);
+            // Irrelevant?
         }
         void Walk(FuncDef node, Scope scope)
         {
@@ -210,7 +239,11 @@ namespace mima_c.compiler
                 funcScope.AddVariable(param.identifier);
 
             AddCommand(node.identifier + ":");
+
+            // Stack pointer value must be the same before the call as after, right?
+            int stackPointerValue = Scope.stackPointer;
             Walk(node.block, funcScope);
+            Scope.stackPointer = stackPointerValue;
             // Precompiler ensures, that a return statement is at the end of the node.block
         }
         void Walk(Statements node, Scope scope)
@@ -235,25 +268,22 @@ namespace mima_c.compiler
             AddCommand("");
 
             // store return value
-            AddCommand("STV " + Settings.RegisterPostions[scope.currentRegisterInUse]);
+            AddCommand("STV " + Settings.ReturnRegisterPostions[0]);
 
             // reset StackPointerPosition
             AddCommand("LDV " + Settings.FramePointerPosition);
             AddCommand("STV " + Settings.StackPointerPosition);
 
             // restore FramePointerPosition
-            Pop(scope);
-            AddCommand("STV " + Settings.FramePointerPosition);
+            Pop(Settings.FramePointerPosition);
 
             // return to call address
-            Pop(scope);
-            AddCommand("STV " + Settings.RegisterPostions[scope.currentRegisterInUse + 1]);
+            Pop(Settings.ReturnRegisterPostions[1]);
 
             // push return value to Stack
-            AddCommand("LDV " + Settings.RegisterPostions[scope.currentRegisterInUse]);
-            Push(scope);
+            Push(Settings.ReturnRegisterPostions[0]);
 
-            AddCommand("LDV " + Settings.RegisterPostions[scope.currentRegisterInUse + 1]);
+            AddCommand("LDV " + Settings.ReturnRegisterPostions[1]);
             AddCommand("STV " + Settings.Mima.InstructionPointer);
         }
         void Walk(Intrinsic node, Scope scope)
@@ -261,9 +291,15 @@ namespace mima_c.compiler
             if (node.type == "printf")
             {
                 AddDescription(node);
-                if (node.parameters.Count == 1)
-                    Walk(node.parameters.First(), scope);
-                AddCommand("PRINTAKKU");
+
+                if (node.parameters.Count == 0)
+                    AddCommand("PRINTAKKU");
+
+                foreach (var parameter in node.parameters)
+                {
+                    Walk(parameter, scope);
+                    AddCommand("PRINTAKKU");
+                }
             }
         }
         void Walk(BinaryArithm node, Scope scope)
@@ -272,16 +308,21 @@ namespace mima_c.compiler
 
             // TODO: At the moment everything is assumed to be a int, BinaryArithms with strings will fail
             // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
+
+            Push(Settings.RegisterPostions[0]);
+
             Walk(node.leftNode, scope);
             AddCommand("");
-            AddCommand("STV " + Settings.RegisterPostions[scope.currentRegisterInUse++]);
+            AddCommand("STV " + Settings.RegisterPostions[0]);
             Walk(node.rightNode, scope);
             AddCommand("");
 
             if (node.operation == TokenType.PLUS)
-                AddCommand("ADD " + Settings.RegisterPostions[--scope.currentRegisterInUse]);
+                AddCommand("ADD " + Settings.RegisterPostions[0]);
             else
                 throw new InvalidOperationException("Operation " + node.operation + " not Implemented!");
+
+            Pop(Settings.RegisterPostions[0]);
         }
 
         public class Runnable
@@ -295,7 +336,7 @@ namespace mima_c.compiler
 
             public int Run()
             {
-                Console.WriteLine(File.ReadAllText(fileName));
+                // Console.WriteLine(File.ReadAllText(fileName));
 
                 Process p = Process.Start("../../../compiler/Mima.exe", '"' + fileName + '"');
                 p.WaitForExit();

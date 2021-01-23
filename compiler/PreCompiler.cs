@@ -241,6 +241,12 @@ namespace mima_c.compiler
             dynamic block = node.block;
             Walk(node.block, ref block);
             node.block = block;
+
+            // removes all code after a return statement
+            int index = node.block.statements.FindIndex(statement => statement is Return);
+            if (index++ != -1)
+                node.block.statements.RemoveRange(index, node.block.statements.Count - index);
+            
             if (!(node.block.statements.Last() is Return))
                 node.block.statements.Add(new Return(new NoOp()));
 
