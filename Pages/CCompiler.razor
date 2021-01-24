@@ -1,0 +1,107 @@
+﻿@page "/ccompiler"
+@inject IJSRuntime JS
+@using mima_c;
+@using mima_c.compiler;
+@using System.IO;
+
+<h1>C Compiler</h1>
+
+<textarea autofocus id="CodeInputField"> 
+int main() {
+    int a = 5;
+    return a;
+}    
+</textarea>
+
+<div class="outputRow">
+    <div class="outputCol">
+        <h3>Compiled Code</h3>
+        <textarea class="outputElement" @bind="@outputText" id="CompiledOutput" readonly> </textarea>
+    </div>
+    <div class="outputCol">
+        <h3>Compilation Output</h3>
+        <textarea class="outputElement" @bind="@consoleOutput" id="ConsoleOutput" readonly> </textarea>
+    </div>
+
+    <button class="btn btn-primary" @onclick="Compile">Compile</button>
+</div>
+
+@functions {
+    string outputText = "";
+    string consoleOutput = "";
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            JS.InvokeVoidAsync("createEditor", "CodeInputField");
+        base.OnAfterRender(firstRender);
+    }
+
+    private void WriteLine(string line)
+    {
+        consoleOutput += line + "\n";
+        Console.WriteLine(line);
+    }
+
+    private async void Compile()
+    {
+        bool showOutput = true;
+
+        string inputText = await JS.InvokeAsync<string>("getEditorValue", "CodeInputField");
+
+        outputText = "";
+        consoleOutput = "";
+
+        string preprozessedText = new PreProzessor(inputText).GetProcessedText();
+        if (showOutput)
+        {
+            WriteLine("Preprozessing Done");
+            WriteLine(preprozessedText);
+        }
+
+        TokenStream tokenStream = new Lexer(preprozessedText).GetTokenStream();
+        if (showOutput)
+            WriteLine("Lexing Done");
+
+        mima_c.ast.Program ast = new CParser(tokenStream).Parse();
+        if (showOutput)
+        {
+            WriteLine("Parsing Done");
+            WriteLine("--------------------- :AST: ---------------------");
+            WriteLine(ast.ToString());
+            WriteLine("-------------------------------------------------");
+        }
+
+        PreCompiler.PreCompiledAST preCompiled = new PreCompiler().PreComile(ast);
+        if (showOutput)
+        {
+            WriteLine("Pre Compilation Done");
+            WriteLine("--------------------- :AST: ---------------------");
+            WriteLine(preCompiled.Program.ToString());
+            WriteLine("------------------ :FUNCTIONS: ------------------");
+            foreach (var func in preCompiled.Functions)
+                WriteLine(func.ToString());
+            WriteLine("-------------------------------------------------");
+        }
+
+        Compiler.Runnable compiled = new Compiler("output.mima").Compile(preCompiled);
+        if (showOutput)
+            WriteLine("Compilation Done");
+
+        outputText = File.ReadAllText(compiled.fileName);
+
+        await JS.InvokeVoidAsync("scrollToBottom", "CompiledOutput");
+        await JS.InvokeVoidAsync("scrollToBottom", "ConsoleOutput");
+
+        StateHasChanged();
+
+        // int result = compiled.Run();
+        // if (showOutput)
+        // {
+        //     WriteLine();
+        //     WriteLine("Running Done");
+        //     WriteLine("Result: " + result.ToString());
+        // }
+
+    }
+}
