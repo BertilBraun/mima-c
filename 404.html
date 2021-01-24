@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Minimal Machine</title>
+    <base href="/CompilerPage/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="lib/dracula.css">
+    <link rel="stylesheet" href="lib/codemirror.css">
+    <script src="lib/codemirror.js"></script>
+    <script src="lib/cMode.js"></script>
+
+    <script>
+        let editors = new Map()
+
+        function createEditor(elementName) {
+            var editor = new CodeMirror.fromTextArea(document.getElementById(elementName), {
+                lineNumbers: true,
+                indentUnit: 4,
+                theme: "dracula",
+                mode: "text/x-csrc",
+                lineWrapping: false,
+                autofocus: true
+            });
+            editors.set(elementName, editor);
+        }
+
+        function getEditorValue(elementName) {
+            return editors.get(elementName).getValue();
+        }
+
+        function scrollToBottom(elementName) {
+            logTa = document.getElementById(elementName)
+            logTa.scrollTop = logTa.scrollHeight;
+        }
+
+    </script>
+
+    <style>
+        .outputRow {
+            display: flex;
+            justify-content: space-between;
+        }
+        .outputCol {
+            width: 48%;
+            margin: 10px;
+        }
+        .outputElement {
+            resize: none;
+            width: 100%;
+            height: 300px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+    </style>
+
+</head>
+
+<body>
+    <app>Loading...</app>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+
+</html>
