@@ -5,18 +5,18 @@
         public class Mima
         {
             // Defined in Mima.h
-            public static int InstructionPointer = 1048500;
+            public const int InstructionPointer = 1048500;
         }
 
-        public static int InitialStackPosition = 0;
-        public static int AkkuPosition = -1;
+        public const int InitialStackPosition = 1;
+        public const int AkkuPosition = -1;
         // Each offset by 4 from InstructionPointer
-        public static int StackPointerPosition = 1048504;
-        public static int FramePointerPosition = 1048508;
-        public static int LastAddrPointerPosition = 1048512;
-        public static int PushPopPointerPosition = 1048516;
+        public const int StackPointerPosition = 1048504;
+        public const int FramePointerPosition = 1048508;
+        public const int LastAddrPointerPosition = 1048512;
+        public const int PushPopPointerPosition = 1048516;
 
-        public static int[] RegisterPostions = new int[]
+        public static readonly int[] RegisterPostions =
         {
             1048520,
             1048524,
@@ -27,7 +27,7 @@
             1048544,
             1048548,
         };
-        public static int[] ReturnRegisterPostions = new int[]
+        public static readonly int[] ReturnRegisterPostions =
         {
             1048552,
             1048556,

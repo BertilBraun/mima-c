@@ -24,7 +24,7 @@ namespace mima_c.compiler
         private Dictionary<string, List<dynamic>> customTypes;
         // Dictionary of variable names to location from FramePointer
         private Dictionary<string, TranslationType> translation;
-        private int framePointer;
+        public int framePointer;
 
         public Scope(Scope parent = null)
         {

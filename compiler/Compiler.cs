@@ -64,8 +64,9 @@ namespace mima_c.compiler
             return new Runnable(fileToCompileTo);
         }
 
-        public void Push(int addr, int size = 1)
+        public void Push(int addr)
         {
+            int size = 1;
             Scope.stackPointer += size;
 
             AddCommand("");
@@ -91,8 +92,10 @@ namespace mima_c.compiler
             AddCommand("");
         }
 
-        public void Pop(int addr, int size = 1)
+        public void Pop(int addr)
         {
+            int size = 1;
+
             AddCommand("");
             AddCommand("// Pop");
             if (addr == Settings.AkkuPosition)
@@ -201,11 +204,14 @@ namespace mima_c.compiler
         void Walk(FuncCall node, Scope scope)
         {
             AddDescription(node);
-            // return address
-            // Offset to return to after JMP... 
-            // Arguments could also be expr, therefore more than 6 commands long,
-            // then reset addr ist set back to the wrong location
-            AddCommand("LDC " + (14 + node.arguments.Count * 6));
+
+            foreach (var argument in node.arguments)
+            {
+                Walk(argument, scope);
+                Push(Settings.AkkuPosition);
+            }
+
+            AddCommand("LDC " + 14);
             AddCommand("ADD " + Settings.Mima.InstructionPointer);
             Push(Settings.AkkuPosition);
 
@@ -216,13 +222,11 @@ namespace mima_c.compiler
             AddCommand("LDV " + Settings.StackPointerPosition);
             AddCommand("STV " + Settings.FramePointerPosition);
 
-            foreach (var argument in node.arguments)
-            {
-                Walk(argument, scope);
-                Push(Settings.AkkuPosition);
-            }
-
             AddCommand("JMP " + node.identifier);
+
+            // simulate pop of framepointer & pop return addr & push return value
+            Scope.stackPointer--;
+
             Pop(Settings.AkkuPosition);
         }
         void Walk(FuncDecl node, Scope scope)
@@ -233,18 +237,25 @@ namespace mima_c.compiler
         {
             AddDescription(node);
             // TODO Make sure, that params are at correct position in funcScope
+            // Stack pointer value must be the same before the call as after, right?
+            int stackPointerValue = Scope.stackPointer;
+
+            // Should be dependent on size of each parameter
+            Scope.stackPointer -= node.parameters.Count;
 
             Scope funcScope = new Scope(scope);
             foreach (var param in node.parameters)
+            {
+                Scope.stackPointer += 1;
                 funcScope.AddVariable(param.identifier);
+            }
 
             AddCommand(node.identifier + ":");
 
-            // Stack pointer value must be the same before the call as after, right?
-            int stackPointerValue = Scope.stackPointer;
             Walk(node.block, funcScope);
-            Scope.stackPointer = stackPointerValue;
             // Precompiler ensures, that a return statement is at the end of the node.block
+
+            Scope.stackPointer = stackPointerValue;
         }
         void Walk(Statements node, Scope scope)
         {

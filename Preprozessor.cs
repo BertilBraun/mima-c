@@ -2,9 +2,9 @@
 
 namespace mima_c
 {
-    class Preprozessor
+    class PreProzessor
     {
-        public Preprozessor(string inputText)
+        public PreProzessor(string inputText)
         {
             InputText = inputText;
         }

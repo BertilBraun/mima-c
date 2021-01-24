@@ -19,7 +19,7 @@ namespace mima_c
 
             string inputText = File.ReadAllText(file);
 
-            string preprozessedText = new Preprozessor(inputText).GetProcessedText();
+            string preprozessedText = new PreProzessor(inputText).GetProcessedText();
             if (showOuput)
             {
                 Console.WriteLine("Preprozessing Done");
