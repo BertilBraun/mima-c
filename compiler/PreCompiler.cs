@@ -348,12 +348,43 @@ namespace mima_c.compiler
             WalkList(node.valueListExprs);
             return ReplaceWith.None;
         }
+        //static Dictionary<TokenType, Func<int, int, RuntimeType>> operatorToOperationAssign = new Dictionary<TokenType, Func<int, int, RuntimeType>>
+        //    {
+        //        {TokenType.PLUSEQ,     (int x, int y) => new RuntimeType(x + y) },
+        //        {TokenType.MINUSEQ,    (int x, int y) => new RuntimeType(x - y) },
+        //        {TokenType.DIVIDEEQ,   (int x, int y) => new RuntimeType(x / y) },
+        //        {TokenType.STAREQ,     (int x, int y) => new RuntimeType(x * y) },
+        //        {TokenType.MODULOEQ,   (int x, int y) => new RuntimeType(x % y) },
+        //    };
         ReplaceWith Walk(OperationAssign node, ref dynamic field)
         {
             // TODO: At the moment everything is assumed to be a int, BinaryArithms with strings will fail
             // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
-            ReplaceWith leftValue = Walk(node.identifier, ref node.identifier);
-            ReplaceWith rightValue = Walk(node.node, ref node.node);
+            Walk(node.identifier, ref node.identifier);
+            Walk(node.node, ref node.node);
+
+            TokenType opType = TokenType.UNDEFINED;
+            switch (node.op)
+            {
+                case TokenType.DIVIDEEQ:
+                    opType = TokenType.DIVIDE;
+                    break;
+                case TokenType.MODULOEQ:
+                    opType = TokenType.MODULO;
+                    break;
+                case TokenType.STAREQ:
+                    opType = TokenType.STAR;
+                    break;
+                case TokenType.MINUSEQ:
+                    opType = TokenType.MINUS;
+                    break;
+                case TokenType.PLUSEQ:
+                    opType = TokenType.PLUS;
+                    break;
+            }
+
+            dynamic operation = new BinaryArithm(opType, node.identifier, node.node);
+            field = new VariableAssign(node.identifier, operation);
 
             // TODO would be nice to have :)
             // if (leftValue.type != rightValue.type)
@@ -361,24 +392,24 @@ namespace mima_c.compiler
 
             return ReplaceWith.None;
         }
-        ReplaceWith Walk(Ternary node, ref dynamic field)
-        {
-            ReplaceWith condition = Walk(node.condition, ref node.condition);
-            if (condition.isCompileTimeKnown)
-            {
-                if (condition.value == 0)
-                    field = node.elseBlock;
-                else
-                    field = node.ifBlock;
-            }
-            else
-            {
-                Walk(node.ifBlock, ref node.ifBlock);
-                Walk(node.elseBlock, ref node.elseBlock);
-            }
-
-            return ReplaceWith.None;
-        }
+        //ReplaceWith Walk(Ternary node, ref dynamic field)
+        //{
+        //    ReplaceWith condition = Walk(node.condition, ref node.condition);
+        //    if (condition.isCompileTimeKnown)
+        //    {
+        //        if (condition.value == 0)
+        //            field = node.elseBody;
+        //        else
+        //            field = node.;
+        //    }
+        //    else
+        //    {
+        //        Walk(node.ifBlock, ref node.ifBlock);
+        //        Walk(node.elseBlock, ref node.elseBlock);
+        //    }
+        //
+        //    return ReplaceWith.None;
+        //}
         ReplaceWith Walk(PointerDecl node, ref dynamic field)
         {
             Walk(node.decl, ref node.decl);

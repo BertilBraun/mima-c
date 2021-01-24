@@ -381,9 +381,9 @@ namespace mima_c.interpreter
         public static RuntimeType Walk(Ternary node, Scope scope)
         {
             if (Walk(node.condition, scope).Get<int>() != 0)
-                return Walk(node.ifBlock, scope);
+                return Walk(node.ifBody, scope);
             else
-                return Walk(node.elseBlock, scope);
+                return Walk(node.elseBody, scope);
         }
         public static RuntimeType Walk(PointerDecl node, Scope scope)
         {

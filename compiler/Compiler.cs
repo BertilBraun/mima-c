@@ -8,6 +8,8 @@ namespace mima_c.compiler
 {
     class Compiler
     {
+        private int uniqueID = 0;
+
         StreamWriter outputFile { get; }
         string fileToCompileTo { get; }
 
@@ -266,6 +268,8 @@ namespace mima_c.compiler
         {
             Scope blockScope = (copyScope != null) ? copyScope : scope;
 
+            // TODO push framepointer?
+
             Walk((Statements)node, blockScope);
         }
         void Walk(Program node, Scope scope)
@@ -313,6 +317,17 @@ namespace mima_c.compiler
                 }
             }
         }
+        //static Dictionary<TokenType, Func<int, int, RuntimeType>> operatorToBinaryFunc = new Dictionary<TokenType, Func<int, int, RuntimeType>>
+        //    {
+        //        {TokenType.MINUS,    (int x, int y) => new RuntimeType(x - y) },
+        //        {TokenType.DIVIDE,   (int x, int y) => new RuntimeType(x / y) },
+        //        {TokenType.STAR,     (int x, int y) => new RuntimeType(x * y) },
+        //        {TokenType.MODULO,   (int x, int y) => new RuntimeType(x % y) },
+        //        {TokenType.LT,       (int x, int y) => new RuntimeType((x < y) ? 1 : 0) },
+        //        {TokenType.GT,       (int x, int y) => new RuntimeType((x > y) ? 1 : 0) },
+        //        {TokenType.GEQ,      (int x, int y) => new RuntimeType((x >= y) ? 1 : 0) },
+        //        {TokenType.LEQ,      (int x, int y) => new RuntimeType((x <= y) ? 1 : 0) },
+        //    };
         void Walk(BinaryArithm node, Scope scope)
         {
             AddDescription(node);
@@ -321,6 +336,7 @@ namespace mima_c.compiler
             // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
 
             Push(Settings.RegisterPostions[0]);
+            Push(Settings.RegisterPostions[1]);
 
             Walk(node.leftNode, scope);
             AddCommand("");
@@ -330,8 +346,296 @@ namespace mima_c.compiler
 
             if (node.operation == TokenType.PLUS)
                 AddCommand("ADD " + Settings.RegisterPostions[0]);
+            else if (node.operation == TokenType.EQ)
+            {
+                string isTrue = "trueEQ" + (uniqueID++);
+                string end = "endEQ" + (uniqueID++);
+
+                AddCommand("EQL " + Settings.RegisterPostions[0]);
+                AddCommand("JMN " + isTrue);
+                AddCommand("JMP " + end);
+                AddCommand(isTrue + ":");
+                AddCommand("LDC 1");
+                AddCommand(end + ":");
+            }
+            else if (node.operation == TokenType.NEQ)
+            {
+                AddCommand("EQL " + Settings.RegisterPostions[0]);
+                AddCommand("STV " + Settings.RegisterPostions[0]);
+                AddCommand("LDC 1");
+                AddCommand("ADD " + Settings.RegisterPostions[0]);
+            }
+            else if (node.operation == TokenType.AND)
+            {
+                // TODO doesnt currently work
+                // (int x, int y) => (x != 0 && y != 0) ? 1 : 0
+
+                // - EQL[address] = Compare accumulator with value of memory at address.
+                //   Set accumulator to - 1 if same, else 0.
+                // - JMN[label] = Jump to label if accumulator is negative
+
+                string isFalse = "falseAND" + (uniqueID++);
+                string end = "endAND" + (uniqueID++);
+
+                AddCommand("STV " + Settings.RegisterPostions[1]);
+
+                AddCommand("LDC 0");
+                AddCommand("EQL " + Settings.RegisterPostions[0]);
+                AddCommand("JMN " + isFalse);
+                AddCommand("EQL " + Settings.RegisterPostions[1]);
+                AddCommand("JMN " + isFalse);
+                AddCommand("LDC 1");
+                AddCommand("JMP " + end);
+                AddCommand(isFalse + ":");
+                AddCommand("LDC 0");
+                AddCommand(end + ":");
+
+            }
+            else if (node.operation == TokenType.OR)
+            {
+                // TODO doesnt currently work
+                // (int x, int y) => (x != 0 || y != 0) ? 1 : 0
+
+                string firstFalse = "firstFalseOR" + (uniqueID++);
+                string isFalse = "falseOR" + (uniqueID++);
+                string end = "endOR" + (uniqueID++);
+
+                AddCommand("STV " + Settings.RegisterPostions[1]);
+
+                AddCommand("LDC 0");
+                AddCommand("EQL " + Settings.RegisterPostions[0]);
+                AddCommand("JMN " + firstFalse);
+                // return value
+                AddCommand("LDC 1");
+                AddCommand("JMP " + end);
+                AddCommand(firstFalse + ":");
+                AddCommand("LDC 0");
+                AddCommand("EQL " + Settings.RegisterPostions[1]);
+                AddCommand("JMN " + isFalse);
+                // return value
+                AddCommand("LDC 1");
+                AddCommand("JMP " + end);
+                AddCommand(isFalse + ":");
+                // return value
+                AddCommand("LDC 0");
+                AddCommand(end + ":");
+            }
             else
                 throw new InvalidOperationException("Operation " + node.operation + " not Implemented!");
+
+            Pop(Settings.RegisterPostions[1]);
+            Pop(Settings.RegisterPostions[0]);
+        }
+        //static Dictionary<TokenType, Func<int, int>> operatorToUnaryFunc = new Dictionary<TokenType, Func<int, int>>
+        //    {
+        //        {TokenType.PLUS,          (int x) => x },
+        //        {TokenType.MINUS,         (int x) => -x },
+        //
+        //        {TokenType.NOT,           (int x) => (x == 0) ? 1 : 0 },
+        //        {TokenType.LNOT,          (int x) => ~x },
+        //    };
+        void Walk(UnaryArithm node, Scope scope)
+        {
+            if (!node.op.In(TokenType.PLUSPLUS, TokenType.MINUSMINUS))
+                throw new InvalidOperationException("Operation " + node.op + " not Implemented!");
+
+            AddDescription(node);
+
+            Push(Settings.RegisterPostions[0]);
+
+            Walk(node.node, scope);
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+            if (node.op == TokenType.PLUSPLUS)
+                AddCommand("LDC 1");
+            else
+                AddCommand("LDC -1");
+            AddCommand("ADD " + Settings.RegisterPostions[0]);
+            AddCommand("STIV " + Settings.LastAddrPointerPosition);
+
+            Pop(Settings.RegisterPostions[0]);
+        }
+        void Walk(For node, Scope scope)
+        {
+            AddDescription(node);
+
+            scope.CreateCopy();
+
+            Walk(node.initialization, scope);
+
+            Push(Settings.RegisterPostions[0]);
+
+            string start = "for" + (uniqueID++);
+            string end = "endFor" + (uniqueID++);
+
+            AddCommand(start + ":");
+
+            Walk(node.condition, scope);
+
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("LDC 0");
+            AddCommand("EQL " + Settings.RegisterPostions[0]);
+
+            AddCommand("JMN " + end);
+
+            Walk(node.body, scope);
+
+            Walk(node.loopExecution, scope);
+
+            AddCommand("JMP " + start);
+
+            AddCommand(end + ":");
+            Pop(Settings.RegisterPostions[0]);
+
+            scope.ResetToCopy();
+        }
+        void Walk(While node, Scope scope)
+        {
+            AddDescription(node);
+
+            scope.CreateCopy();
+
+            Push(Settings.RegisterPostions[0]);
+
+            string start = "while" + (uniqueID++);
+            string end = "endWhile" + (uniqueID++);
+
+            AddCommand(start + ":");
+
+            Push(Settings.RegisterPostions[0]);
+
+            Walk(node.condition, scope);
+
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("LDC 0");
+            AddCommand("EQL " + Settings.RegisterPostions[0]);
+
+            AddCommand("JMN " + end);
+            Walk(node.body, scope);
+
+            AddCommand("JMP " + start);
+
+            AddCommand(end + ":");
+            Pop(Settings.RegisterPostions[0]);
+
+            scope.ResetToCopy();
+        }
+        /*void Walk(Break node, Scope scope)
+        {
+            throw new BreakExc();
+        }
+        void Walk(Continue node, Scope scope)
+        {
+            throw new ContinueExc();
+        }*/
+        void Walk(If node, Scope scope)
+        {
+            // if (Walk(node.condition, scope).Get<int>() != 0)
+            //     Walk(node.ifBody, scope);
+            // else
+            //     Walk(node.elseBody, scope);
+
+            AddDescription(node);
+
+            Push(Settings.RegisterPostions[0]);
+
+            Walk(node.condition, scope);
+
+            string endIf = "endif" + (uniqueID++);
+            string elseIf = "elseif" + (uniqueID++);
+
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+            AddCommand("LDC 0");
+            AddCommand("EQL " + Settings.RegisterPostions[0]);
+
+            AddCommand("JMN " + elseIf);
+            Walk(node.ifBody, scope);
+
+            AddCommand("JMP " + endIf);
+            AddCommand(elseIf + ":");
+            Walk(node.elseBody, scope);
+
+            AddCommand(endIf + ":");
+            Pop(Settings.RegisterPostions[0]);
+        }
+        //void Walk(ArrayDecl node, Scope scope)
+        //{
+        //    int size = 0;
+        //    if (node.countExpr != null)
+        //        size = Walk(node.countExpr, scope).Get<int>();
+        //
+        //    Array variable = new Array(RuntimeType.GetTypeFromString(node.type), size);
+        //    VariableSignature variableSignature = new VariableSignature(node.identifier);
+        //    scope.AddSymbol(variableSignature, variable);
+        //
+        //    return RuntimeType.Void;
+        //}
+        //void Walk(ArrayAccess node, Scope scope)
+        //{
+        //    VariableSignature variableSignature = new VariableSignature(node.identifier);
+        //    Array variable = scope.Translate(variableSignature) as Array;
+        //
+        //    if (variable == null)
+        //        throw new TypeAccessException("Variable was not of type Array: " + node.identifier);
+        //
+        //    // TODO is an assumption, could also be a function
+        //    int index = Walk(node.indexExpr, scope).Get<int>();
+        //
+        //    if (index < 0 || index >= variable.Values.Length)
+        //        throw new IndexOutOfRangeException("Array index out of Range: " + index);
+        //
+        //    return variable.Values[index];
+        //}
+        //void Walk(ArrayLiteral node, Scope scope)
+        //{
+        //    List<RuntimeType> values = new List<RuntimeType>();
+        //    foreach (var expr in node.valueListExprs)
+        //        values.Add(Walk(expr, scope));
+        //
+        //    return new Array(values.ToArray());
+        //}
+        //
+        //void Walk(PointerDecl node, Scope scope)
+        //{
+        //    Pointer variable = new Pointer(Walk(node.decl, scope));
+        //    VariableSignature variableSignature = new VariableSignature(node.identifier);
+        //    scope.AddSymbol(variableSignature, variable);
+        //
+        //    return RuntimeType.Void;
+        //}
+        //void Walk(PointerAccess node, Scope scope)
+        //{
+        //    RuntimeType pointer = Walk(node.node, scope);
+        //    return pointer.Get<RuntimeType>();
+        //}
+        //void Walk(PointerLiteral node, Scope scope)
+        //{
+        //    return new Pointer(Walk(node.node, scope));
+        //}
+        void Walk(PostfixArithm node, Scope scope)
+        {
+            // TODO: At the moment everything is assumed to be a int, BinaryArithms with strings will fail
+            // TODO: typecheck the arguments and maybe dispatch to different functions depending on type?
+
+            if (!node.operation.In(TokenType.PLUSPLUS, TokenType.MINUSMINUS))
+                throw new InvalidOperationException("Operation " + node.operation + " not Implemented!");
+
+            AddDescription(node);
+
+            Push(Settings.RegisterPostions[0]);
+
+            Walk(node.node, scope);
+
+            AddCommand("STV " + Settings.RegisterPostions[0]);
+
+            if (node.operation == TokenType.PLUSPLUS)
+                AddCommand("LDC 1");
+            else
+                AddCommand("LDC -1");
+            AddCommand("ADD " + Settings.RegisterPostions[0]);
+            AddCommand("STIV " + Settings.LastAddrPointerPosition);
+
+            // Reload old value, pre operation
+            AddCommand("LDV " + Settings.RegisterPostions[0]);
 
             Pop(Settings.RegisterPostions[0]);
         }

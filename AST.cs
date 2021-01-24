@@ -222,20 +222,10 @@ namespace mima_c
             protected override string _nodeName => op.ToString();
         }
 
-        class Ternary : AST
+        class Ternary : If
         {
-            public dynamic condition;
-            public dynamic ifBlock;
-            public dynamic elseBlock;
-
-            public Ternary(AST condition, AST ifBlock, AST elseBlock)
-            {
-                this.condition = condition;
-                this.ifBlock = ifBlock;
-                this.elseBlock = elseBlock;
-            }
-
-            protected override ASTList _children => new ASTList { condition, ifBlock, elseBlock };
+            public Ternary(AST condition, AST ifBody, AST elseBody) : base(condition, ifBody, elseBody)
+            { }
         }
 
         class PostfixArithm : AST

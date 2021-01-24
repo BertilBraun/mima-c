@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace mima_c.compiler
@@ -24,6 +25,7 @@ namespace mima_c.compiler
         private Dictionary<string, List<dynamic>> customTypes;
         // Dictionary of variable names to location from FramePointer
         private Dictionary<string, TranslationType> translation;
+        private Dictionary<string, TranslationType> translationCopy;
         public int framePointer;
 
         public Scope(Scope parent = null)
@@ -69,6 +71,20 @@ namespace mima_c.compiler
                 return translation[variableName].size;
 
             return parent.GetSize(variableName);
+        }
+
+        public void CreateCopy()
+        {
+            translationCopy = translation.ToDictionary(entry => entry.Key,
+                                                        entry => entry.Value);
+        }
+        public void ResetToCopy()
+        {
+            if (translationCopy == null)
+                throw new ExecutionEngineException("Reset Copy called before Create Copy!");
+
+            translation = translationCopy;
+            translationCopy = null;
         }
     }
 }
