@@ -1,55 +1,94 @@
 @page "/mimainterpreter"
-@inject HttpClient Http
+@inject IJSRuntime JS
+@using MiMa.interpreter;
+@using System.Diagnostics;
+@using System.IO;
 
 <h1>Mima Interpreter</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
+<div class="outputRow">
+    <div class="outputCol">
+        <h3>MiMa Code</h3>
+        <textarea autofocus id="CodeInputField">    ldc 1
+    stv 1
+inc:
+    add 1
+    printakku
+    jmp inc</textarea>
+    </div>
+    <div class="outputCol">
+        <h3>Output</h3>
+        <textarea class="outputElement" @bind="@Output" id="OutputElement" readonly> </textarea>
+    </div>
+</div>
 
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<button class="btn btn-primary" @onclick="Stop">Stop</button>
+<button class="btn btn-primary" @onclick="Run">Run</button>
 
 @code {
-    private WeatherForecast[] forecasts;
+    string fileName = "output.mima";
+    string Output = "";
+    bool stopRun = false;
 
-    protected override async Task OnInitializedAsync()
+    private void WriteLine(string line)
     {
-        // forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        Output += line + "\n";
+        Console.WriteLine(line);
     }
 
-    public class WeatherForecast
+    private void Stop()
     {
-        public DateTime Date { get; set; }
+        stopRun = true;
+    }
 
-        public int TemperatureC { get; set; }
+    private async void Run()
+    {
+        string inputText = await JS.InvokeAsync<string>("getEditorValue", "CodeInputField");
 
-        public string Summary { get; set; }
+        File.WriteAllText(fileName, inputText);
 
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        Output = "";
+        WriteLine("Now Running Program " + fileName);
+
+        List<Instruction> instructions = new InstructionParser().Parse(fileName);
+
+        if (instructions == null)
+            return;
+
+        Mima mima = new Mima(instructions, WriteLine);
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        stopRun = false;
+
+        while (mima.CanStep() && !stopRun)
+        {
+            mima.Step();
+            await JS.InvokeVoidAsync("scrollToBottom", "OutputElement");
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(1);
+        }
+
+        WriteLine("");
+        WriteLine("Done!");
+        WriteLine("Elapsed time: " + stopwatch.Elapsed.TotalSeconds + "s");
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JS.InvokeVoidAsync("createEditor", "CodeInputField", "text/mima");
+
+            if (File.Exists(fileName))
+            {
+                string input = File.ReadAllText(fileName);
+                if (input != "")
+                    JS.InvokeVoidAsync("setEditorValue", "CodeInputField", input);
+            }
+        }
+        base.OnAfterRender(firstRender);
     }
 }

@@ -9,6 +9,7 @@
 <textarea autofocus id="CodeInputField"> 
 int main() {
     int a = 5;
+    printf(a);
     return a;
 }    
 </textarea>
@@ -22,9 +23,9 @@ int main() {
         <h3>Compilation Output</h3>
         <textarea class="outputElement" @bind="@consoleOutput" id="ConsoleOutput" readonly> </textarea>
     </div>
-
-    <button class="btn btn-primary" @onclick="Compile">Compile</button>
 </div>
+<button class="btn btn-primary" @onclick="Compile">Compile</button>
+<NavLink class="btn btn-primary" href="/mimainterpreter">Go to Run</NavLink>
 
 @functions {
     string outputText = "";
@@ -33,14 +34,24 @@ int main() {
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
-            JS.InvokeVoidAsync("createEditor", "CodeInputField");
+            JS.InvokeVoidAsync("createEditor", "CodeInputField", "text/x-csrc");
         base.OnAfterRender(firstRender);
     }
 
-    private void WriteLine(string line)
+    private async Task WriteLine(string line)
     {
         consoleOutput += line + "\n";
         Console.WriteLine(line);
+        await ShowOutput();
+    }
+
+    private async Task ShowOutput()
+    {
+        await JS.InvokeVoidAsync("scrollToBottom", "CompiledOutput");
+        await JS.InvokeVoidAsync("scrollToBottom", "ConsoleOutput");
+
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1);
     }
 
     private async void Compile()
@@ -55,45 +66,41 @@ int main() {
         string preprozessedText = new PreProzessor(inputText).GetProcessedText();
         if (showOutput)
         {
-            WriteLine("Preprozessing Done");
-            WriteLine(preprozessedText);
+            await WriteLine("Preprozessing Done");
+            await WriteLine(preprozessedText);
         }
 
         TokenStream tokenStream = new Lexer(preprozessedText).GetTokenStream();
         if (showOutput)
-            WriteLine("Lexing Done");
+            await WriteLine("Lexing Done");
 
         mima_c.ast.Program ast = new CParser(tokenStream).Parse();
         if (showOutput)
         {
-            WriteLine("Parsing Done");
-            WriteLine("--------------------- :AST: ---------------------");
-            WriteLine(ast.ToString());
-            WriteLine("-------------------------------------------------");
+            await WriteLine("Parsing Done");
+            await WriteLine("--------------------- :AST: ---------------------");
+            await WriteLine(ast.ToString());
+            await WriteLine("-------------------------------------------------");
         }
 
         PreCompiler.PreCompiledAST preCompiled = new PreCompiler().PreComile(ast);
         if (showOutput)
         {
-            WriteLine("Pre Compilation Done");
-            WriteLine("--------------------- :AST: ---------------------");
-            WriteLine(preCompiled.Program.ToString());
-            WriteLine("------------------ :FUNCTIONS: ------------------");
+            await WriteLine("Pre Compilation Done");
+            await WriteLine("--------------------- :AST: ---------------------");
+            await WriteLine(preCompiled.Program.ToString());
+            await WriteLine("------------------ :FUNCTIONS: ------------------");
             foreach (var func in preCompiled.Functions)
-                WriteLine(func.ToString());
-            WriteLine("-------------------------------------------------");
+                await WriteLine(func.ToString());
+            await WriteLine("-------------------------------------------------");
         }
 
         Compiler.Runnable compiled = new Compiler("output.mima").Compile(preCompiled);
         if (showOutput)
-            WriteLine("Compilation Done");
+            await WriteLine("Compilation Done");
 
         outputText = File.ReadAllText(compiled.fileName);
-
-        await JS.InvokeVoidAsync("scrollToBottom", "CompiledOutput");
-        await JS.InvokeVoidAsync("scrollToBottom", "ConsoleOutput");
-
-        StateHasChanged();
+        await ShowOutput();
 
         // int result = compiled.Run();
         // if (showOutput)

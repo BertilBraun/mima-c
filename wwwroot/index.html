@@ -13,29 +13,39 @@
     <link rel="stylesheet" href="lib/codemirror.css">
     <script src="lib/codemirror.js"></script>
     <script src="lib/cMode.js"></script>
+    <script src="lib/mimaMode.js"></script>
 
     <script>
-        let editors = new Map()
+        let editors = {};
 
-        function createEditor(elementName) {
+        function createEditor(elementName, type) {
+            var elements = document.getElementsByClassName("CodeMirror");
+            while (elements.length > 0) {
+                elements[0].parentNode.removeChild(elements[0]);
+            }
+
             var editor = new CodeMirror.fromTextArea(document.getElementById(elementName), {
                 lineNumbers: true,
                 indentUnit: 4,
                 theme: "dracula",
-                mode: "text/x-csrc",
+                mode: type,
                 lineWrapping: false,
                 autofocus: true
             });
-            editors.set(elementName, editor);
+            editors[elementName] = editor;
         }
 
         function getEditorValue(elementName) {
-            return editors.get(elementName).getValue();
+            return editors[elementName].getValue();
+        }
+
+        function setEditorValue(elementName, value) {
+            editors[elementName].getDoc().setValue(value);
         }
 
         function scrollToBottom(elementName) {
-            logTa = document.getElementById(elementName)
-            logTa.scrollTop = logTa.scrollHeight;
+            textBox = document.getElementById(elementName);
+            textBox.scrollTop = textBox.scrollHeight;
         }
 
     </script>
@@ -45,10 +55,12 @@
             display: flex;
             justify-content: space-between;
         }
+
         .outputCol {
             width: 48%;
             margin: 10px;
         }
+
         .outputElement {
             resize: none;
             width: 100%;
