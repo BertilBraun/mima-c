@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace mima_c.compiler
 {
@@ -10,12 +11,12 @@ namespace mima_c.compiler
     {
         private int uniqueID = 0;
 
-        StreamWriter outputFile { get; }
+        StringBuilder outputString { get; }
         string fileToCompileTo { get; }
 
         public Compiler(string fileToCompileTo)
         {
-            this.outputFile = File.CreateText(fileToCompileTo);
+            this.outputString = new StringBuilder();
             this.fileToCompileTo = fileToCompileTo;
         }
 
@@ -27,9 +28,9 @@ namespace mima_c.compiler
         private void AddCommand(string command)
         {
             if (command.Contains(':'))
-                outputFile.WriteLine(command);
+                outputString.AppendLine(command);
             else
-                outputFile.WriteLine('\t' + command);
+                outputString.AppendLine('\t' + command);
         }
 
         private void CreateMimaHeader()
@@ -60,9 +61,10 @@ namespace mima_c.compiler
             {
                 Console.WriteLine("Compilation Error:");
                 Console.WriteLine(e.Message);
+                return null;
             }
 
-            outputFile.Close();
+            File.WriteAllText(fileToCompileTo, outputString.ToString());
             return new Runnable(fileToCompileTo);
         }
 
@@ -75,8 +77,7 @@ namespace mima_c.compiler
             AddCommand("// Push");
 
             // Store Akku value 
-            if (addr == Settings.AkkuPosition)
-                AddCommand("STV " + Settings.PushPopPointerPosition);
+            AddCommand("STV " + Settings.PushPopPointerPosition);
 
             // increment stack pointer
             AddCommand("LDC " + size);
@@ -91,6 +92,7 @@ namespace mima_c.compiler
 
             // Set value
             AddCommand("STIV " + Settings.StackPointerPosition);
+            AddCommand("LDV " + Settings.PushPopPointerPosition);
             AddCommand("");
         }
 
@@ -213,7 +215,7 @@ namespace mima_c.compiler
                 Push(Settings.AkkuPosition);
             }
 
-            AddCommand("LDC " + 14);
+            AddCommand("LDC " + 17);
             AddCommand("ADD " + Settings.Mima.InstructionPointer);
             Push(Settings.AkkuPosition);
 

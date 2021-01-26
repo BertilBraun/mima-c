@@ -63,6 +63,9 @@ namespace mima_c
             if (showOuput)
                 Console.WriteLine("Compilation Done");
 
+            if (compiled == null)
+                Environment.Exit(1);
+
             int result = compiled.Run();
             if (showOuput)
             {
