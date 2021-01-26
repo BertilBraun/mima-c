@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace mima_c
 {
@@ -121,11 +122,11 @@ namespace mima_c
 
             if (nextToken.tokenType != expectedTokenType)
             {
-                Console.WriteLine("{0}: Tried to eat: {1} but has: {2}".Format(nextToken.pos, expectedTokenType, nextToken.tokenType));
-                Console.WriteLine("Leftover Tokenstream:");
-                Console.WriteLine(ToString());
-                Debug.Assert(false);
-                Environment.Exit(1);
+                StringBuilder builder = new StringBuilder();
+                builder.AppendLine("{0}: Tried to eat: {1} but has: {2}".Format(nextToken.pos, expectedTokenType, nextToken.tokenType));
+                builder.AppendLine("Leftover Tokenstream:");
+                builder.AppendLine(ToString());
+                throw new InvalidOperationException(builder.ToString());
             }
 
             tokens.RemoveAt(0);

@@ -6,8 +6,7 @@
 
 <h1>C Compiler</h1>
 
-<textarea autofocus id="CodeInputField"> 
-int main() {
+<textarea autofocus id="CodeInputField">int main() {
     int a = 5;
     printf(a);
     return a;
@@ -25,9 +24,11 @@ int main() {
     </div>
 </div>
 <button class="btn btn-primary" @onclick="Compile">Compile</button>
-<NavLink class="btn btn-primary" href="/mima-c/mimainterpreter">Go to Run</NavLink>
+<NavLink class="btn btn-primary" href="/mima-c/mimainterpreter"  style="@IsDisabledStyle">Go to Run</NavLink>
 
 @functions {
+    string IsDisabledStyle { get; set; } = "display: none;";
+
     string outputText = "";
     string consoleOutput = "";
 
@@ -63,52 +64,60 @@ int main() {
         outputText = "";
         consoleOutput = "";
 
-        string preprozessedText = new PreProzessor(inputText).GetProcessedText();
-        if (showOutput)
+        try
         {
-            await WriteLine("Preprozessing Done");
-            await WriteLine(preprozessedText);
+            string preprozessedText = new PreProzessor(inputText).GetProcessedText();
+            if (showOutput)
+            {
+                await WriteLine("Preprozessing Done");
+                await WriteLine(preprozessedText);
+            }
+
+            TokenStream tokenStream = new Lexer(preprozessedText).GetTokenStream();
+            if (showOutput)
+                await WriteLine("Lexing Done");
+
+            mima_c.ast.Program ast = new CParser(tokenStream).Parse();
+            if (showOutput)
+            {
+                await WriteLine("Parsing Done");
+                await WriteLine("--------------------- :AST: ---------------------");
+                await WriteLine(ast.ToString());
+                await WriteLine("-------------------------------------------------");
+            }
+
+            PreCompiler.PreCompiledAST preCompiled = new PreCompiler().PreComile(ast);
+            if (showOutput)
+            {
+                await WriteLine("Pre Compilation Done");
+                await WriteLine("--------------------- :AST: ---------------------");
+                await WriteLine(preCompiled.Program.ToString());
+                await WriteLine("------------------ :FUNCTIONS: ------------------");
+                foreach (var func in preCompiled.Functions)
+                    await WriteLine(func.ToString());
+                await WriteLine("-------------------------------------------------");
+            }
+
+            Compiler.Runnable compiled = new Compiler("output.mima").Compile(preCompiled);
+            if (showOutput)
+                await WriteLine("Compilation Done");
+
+            if (compiled == null)
+            {
+                IsDisabledStyle = "display: none;";
+                return;
+            }
+
+            IsDisabledStyle = "display: inline-block;";
+            outputText = File.ReadAllText(compiled.fileName);
+            await ShowOutput();
         }
-
-        TokenStream tokenStream = new Lexer(preprozessedText).GetTokenStream();
-        if (showOutput)
-            await WriteLine("Lexing Done");
-
-        mima_c.ast.Program ast = new CParser(tokenStream).Parse();
-        if (showOutput)
+        catch (Exception e)
         {
-            await WriteLine("Parsing Done");
-            await WriteLine("--------------------- :AST: ---------------------");
-            await WriteLine(ast.ToString());
-            await WriteLine("-------------------------------------------------");
+            IsDisabledStyle = "display: none;";
+            await WriteLine("");
+            await WriteLine("Compilation Error:");
+            await WriteLine(e.Message);
         }
-
-        PreCompiler.PreCompiledAST preCompiled = new PreCompiler().PreComile(ast);
-        if (showOutput)
-        {
-            await WriteLine("Pre Compilation Done");
-            await WriteLine("--------------------- :AST: ---------------------");
-            await WriteLine(preCompiled.Program.ToString());
-            await WriteLine("------------------ :FUNCTIONS: ------------------");
-            foreach (var func in preCompiled.Functions)
-                await WriteLine(func.ToString());
-            await WriteLine("-------------------------------------------------");
-        }
-
-        Compiler.Runnable compiled = new Compiler("output.mima").Compile(preCompiled);
-        if (showOutput)
-            await WriteLine("Compilation Done");
-
-        outputText = File.ReadAllText(compiled.fileName);
-        await ShowOutput();
-
-        // int result = compiled.Run();
-        // if (showOutput)
-        // {
-        //     WriteLine();
-        //     WriteLine("Running Done");
-        //     WriteLine("Result: " + result.ToString());
-        // }
-
     }
 }
