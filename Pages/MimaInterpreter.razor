@@ -29,11 +29,13 @@ inc:
     string fileName = "output.mima";
     string Output = "";
     bool stopRun = false;
+    bool shouldUpdateOutput = false;
 
     private void WriteLine(string line)
     {
         Output += line + "\n";
         Console.WriteLine(line);
+        shouldUpdateOutput = true;
     }
 
     private void Stop()
@@ -64,9 +66,13 @@ inc:
         while (mima.CanStep() && !stopRun)
         {
             mima.Step();
-            await JS.InvokeVoidAsync("scrollToBottom", "OutputElement");
-            await InvokeAsync(StateHasChanged);
-            await Task.Delay(1);
+            if (shouldUpdateOutput)
+            {
+                shouldUpdateOutput = false;
+                await JS.InvokeVoidAsync("scrollToBottom", "OutputElement");
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(1);
+            }
         }
 
         WriteLine("");
