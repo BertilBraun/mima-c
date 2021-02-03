@@ -19,10 +19,7 @@
         let editors = {};
 
         function createEditor(elementName, type) {
-            var elements = document.getElementsByClassName("CodeMirror");
-            while (elements.length > 0) {
-                elements[0].parentNode.removeChild(elements[0]);
-            }
+            removeEditor();
 
             var editor = new CodeMirror.fromTextArea(document.getElementById(elementName), {
                 lineNumbers: true,
@@ -33,6 +30,13 @@
                 autofocus: true
             });
             editors[elementName] = editor;
+        }
+
+        function removeEditor() {
+            var elements = document.getElementsByClassName("CodeMirror");
+            while (elements.length > 0) {
+                elements[0].parentNode.removeChild(elements[0]);
+            }
         }
 
         function getEditorValue(elementName) {

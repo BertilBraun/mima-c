@@ -1,0 +1,18 @@
+@page "/code"
+@inject IJSRuntime JS
+
+<h1>GitHub Repositories</h1>
+
+<br />
+<a href="https://github.com/Mo0dy/mima-c">Mo0dy Code Repository</a>
+<br />
+<a href="https://github.com/BertilBraun/mima-c">Bertil Code Repository</a>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        JS.InvokeVoidAsync("removeEditor");
+        base.OnInitialized();
+    }
+}
