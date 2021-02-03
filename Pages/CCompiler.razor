@@ -100,7 +100,7 @@ int main() {
             }
 
             Compiler.Runnable compiled = new Compiler("output.mima").Compile(preCompiled);
-            if (showOutput)
+            if (showOutput && compiled != null)
                 await WriteLine("Compilation Done");
 
             if (compiled == null)

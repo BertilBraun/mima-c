@@ -46,23 +46,13 @@ namespace mima_c.compiler
             CreateMimaHeader();
 
             Scope globalScope = new Scope();
-            try
-            {
-                Walk(preCompiled.Program, globalScope);
+            Walk(preCompiled.Program, globalScope);
 
-                AddCommand("");
-                AddCommand("HALT // Program End");
+            AddCommand("");
+            AddCommand("HALT // Program End");
 
-                foreach (var function in preCompiled.Functions)
-                    Walk(function, globalScope);
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Compilation Error:");
-                Console.WriteLine(e.Message);
-                return null;
-            }
+            foreach (var function in preCompiled.Functions)
+                Walk(function, globalScope);
 
             File.WriteAllText(fileToCompileTo, outputString.ToString());
             return new Runnable(fileToCompileTo);
