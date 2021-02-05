@@ -1,84 +1,60 @@
 #+TITLE: Readme
 
-* TODO Stage 1 Parser & Interpreter
+* Table of Contents :toc:
+- [[#overview][Overview]]
+- [[#supported-featureset][Supported Featureset:]]
+  - [[#parser][Parser]]
+  - [[#interpreter][Interpreter]]
+  - [[#compiler][Compiler]]
+- [[#grammar][Grammar]]
+- [[#compiler-1][Compiler]]
+  - [[#execution-environment][Execution environment]]
+
+* Overview
+
+This is a purely academic project to explore context free grammars and compilers based on the theoretical MIMA-Machine.
+
+We use a recursive decent parser to parse a subset of the C programming language.
+The parsed output can then either be interpreted or compiled to MIMA-Assembly[[Our Instructionpointer][*]].
+
+You can try it yourself here: [[https://bertilbraun.github.io/mima-c/]]
+
+* Supported Featureset:
 ** Parser
-- [X] while loop
-- [X] for loop
-- [X] conditionals
-- [X] tenary operator
-- [X] IO printf function
-- [X] return
-- [X] break
-- [X] continue
-- [X] Arrays
-- [X] Relations
-- [X] Stringliterals
-- [X] Charliterals
+- while, for loop
+- conditionals (if else)
+- tenary operator
+- IO printf function
+- return
+- break
+- continue
+- boolean operators
+- arithmetic operators
+- variables, arrays
+- stringliterals
+- charliterals
+- pointers
+- typedefs
 
 ** Interpreter
-- [X] Scope
-- [X] while loop
-- [X] for loop
-- [X] tenary operator
-- [X] Conditionals
-- [X] IO printf function
-- [X] Return
-- [X] Break
-- [X] Continue
-- [X] Arrays
-- [X] Functions
-- [X] Pointer  missing: (Pointer arithmetic expressions | Array to Pointer Decl | Array index with Pointer)
-- [X] Cast
-- [X] Struct   missing: modifiers like struct, unsigned, const etc. in front of variable declarations
-- [X] Typedef
+The Interpreter can execute anything that can be parsed.
 
-** Sonstiges
-- [X] Errorhandling (gegen den gepreprocessten filetext)
-- [X] Test für parsing
-  + [X] Automatic generation?
-- [X] Argparse
-
-* Sprache:
-1. Arithmetic Expressions
-   #+begin_example
-   (1 + 2 - 2 / 3 * -5 % 10)
-   #+end_example
-2. Variables (Assignment)
-   #+begin_example
-   int a = 5;
-   #+end_example
-   We differentiate between:
-   - Global
-   - Local
-   Variables
-   /Note:/
-      Assignment returns the assigned value to allow for:
-      #+begin_example
-      a = b = 5;
-      #+end_example
-3. Scope
-   - *local* scope:
-     #+begin_example
-     {
-     int a = 1;
-     int b = 1;
-             {
-                 int b = 5;
-                 a + b;
-             }
-     }
-     #+end_example
-   - *global* scope
-
-4. Function declaration
-   If we do a single pass compiler we need forward delaration
-   ?How will this work for the compiler?
-5. Functiondefinition
-   void a(int b, int c) { BODY }
-6. Functioncalls
-   a(b, c)
+** Compiler
+- while, for loops
+- conditionals (if else)
+- tenary operator
+- some arithmetic expressions
+  - (+), (+=)
+- printf (somewhat)
+- functions (recursion)
+- return
+- variables
 
 * Grammar
+This grammar is (mostly) a LL(2) grammar.
+
+With the exception that we evaluate types and scope during parsing to differentiate between identifier and type tokens (to avoid lookahead).
+
 #+begin_src
 expr           -> assignment | opassignment
 ;; this is ok to do recursively because it is right associative
@@ -129,39 +105,38 @@ funcdecl       -> type IDENTIFIER LPAREN (RPAREN | funcdecl' (COMMA funcdecl')* 
 funcdecl'      -> type IDENTIFIER (LBRACKET RBRACKET)?
 #+end_src
 
-
-* Modules:
-** Preprozessor
-- Comments
-- (Macros)
-** Lexer
-- Generates Tokens
-Difficulty?:
-- Handles strings
-** Parser
-Generates AST to be used by compiler / interpreter
-What type of parser?
-- Recursive descent?
-- Parser combinators?
-
-** Interpreter
-** Compiler (future)
-- Single file (at least no linker)
-- (type system)
-
-*** Address Space:
-- Code
-- Data
-- Registers (pseudo)
-- Stack
-- Heap
 * Compiler
-** Execution environments :5_1_2:
-All objects with static storage duration shall be initialized _before_ Program startup
+** Execution environment
+*** Stack
+The stack starts at 1 and grows upwards.
+*** Simulated Registers
+Some memory addresses are reserved to be used as registers by the compiler.
 
-* Brainstorming
-Option 2:
-Compiler -> bytecode
+|---------------------------+---------|
+| StackPointerPosition      | 1048504 |
+| FramePointerPosition      | 1048508 |
+| LastAddrPointerPosition   | 1048512 |
+| PushPopPointerPosition    | 1048516 |
+|---------------------------+---------|
+| General Purpose registers | 1048520 |
+|                           | 1048524 |
+|                           | 1048528 |
+|                           | 1048532 |
+|                           | 1048536 |
+|                           | 1048540 |
+|                           | 1048544 |
+|                           | 1048548 |
+|---------------------------+---------|
+| Return Register Positions | 1048552 |
+|                           | 1048556 |
+|---------------------------+---------|
+| InstructionPointer        | 1048500 |
+|---------------------------+---------|
 
-Mima:
-Interpreter <- bytecode
+*** Our Instructionpointer
+We don't assemble to bytecode.
+The Mima assembly Interpreter we use will use the InstructionPointer memory location as an instruction pointer thus allowing for direct reading of that value.
+
+This makes it trivial to push the current instruction pointer to the stack even without resolving that address in the assembler.
+
+In the future we might assemble to proper MIMA bytecode and then this step will not be necessary anymore.
