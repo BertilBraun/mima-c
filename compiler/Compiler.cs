@@ -1,6 +1,7 @@
 ﻿using mima_c.ast;
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -656,7 +657,7 @@ namespace mima_c.compiler
 
         public class Runnable
         {
-            string fileName { get; }
+            public string fileName { get; }
 
             public Runnable(string fileName)
             {
