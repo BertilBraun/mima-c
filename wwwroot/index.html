@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Minimal Machine</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="lib/dracula.css">
+    <link rel="stylesheet" href="lib/codemirror.css">
+    <script src="lib/codemirror.js"></script>
+    <script src="lib/cMode.js"></script>
+    <script src="lib/mimaMode.js"></script>
+
+    <script type="text/javascript">
+// license magnet:?xt=urn:btih:e95b018ef3580986a04669f1b5879592219e2a7a&dn=public-domain.txt Public Domain <!--/*--><![CDATA[/*><!--*/
+     function CodeHighlightOn(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.add("code-highlighted");
+         target.classList.add("code-highlighted");
+       }
+     }
+     function CodeHighlightOff(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.remove("code-highlighted");
+         target.classList.remove("code-highlighted");
+       }
+     }
+    
+// /*]]>*///--> license-end
+    </script>
+    <script>
+        let editors = {};
+
+        function createEditor(elementName, type) {
+            removeEditor();
+
+            var editor = new CodeMirror.fromTextArea(document.getElementById(elementName), {
+                lineNumbers: true,
+                indentUnit: 4,
+                theme: "dracula",
+                mode: type,
+                lineWrapping: false,
+                autofocus: true
+            });
+            editors[elementName] = editor;
+        }
+
+        function removeEditor() {
+            var elements = document.getElementsByClassName("CodeMirror");
+            while (elements.length > 0) {
+                elements[0].parentNode.removeChild(elements[0]);
+            }
+        }
+
+        function getEditorValue(elementName) {
+            return editors[elementName].getValue();
+        }
+
+        function setEditorValue(elementName, value) {
+            editors[elementName].getDoc().setValue(value);
+        }
+
+        function scrollToBottom(elementName) {
+            textBox = document.getElementById(elementName);
+            textBox.scrollTop = textBox.scrollHeight;
+        }
+
+    </script>
+
+    <style>
+        .outputRow {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .outputCol {
+            width: 48%;
+            margin: 10px;
+        }
+
+        .outputElement {
+            resize: none;
+            width: 100%;
+            height: 300px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+    </style>
+
+</head>
+
+<body>
+    <app>Loading...</app>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+
+</html>
