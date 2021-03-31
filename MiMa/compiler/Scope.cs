@@ -81,7 +81,7 @@ namespace mima_c.compiler
         public void ResetToCopy()
         {
             if (translationCopy == null)
-                throw new ExecutionEngineException("Reset Copy called before Create Copy!");
+                throw new InvalidOperationException("Reset Copy called before Create Copy!");
 
             translation = translationCopy;
             translationCopy = null;

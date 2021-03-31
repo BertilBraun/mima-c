@@ -1,6 +1,7 @@
 ﻿using mima_c.ast;
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,8 +12,11 @@ namespace mima_c.compiler
     {
         private int uniqueID = 0;
 
-        StringBuilder outputString { get; }
-        string fileToCompileTo { get; }
+        private StringBuilder outputString { get; }
+        private string fileToCompileTo { get; }
+
+        private Stack<string> loopStartPositionStack = new Stack<string>();
+        private Stack<string> loopEndPositionStack = new Stack<string>();
 
         public Compiler(string fileToCompileTo)
         {
@@ -46,13 +50,23 @@ namespace mima_c.compiler
             CreateMimaHeader();
 
             Scope globalScope = new Scope();
-            Walk(preCompiled.Program, globalScope);
+            try
+            {
+                Walk(preCompiled.Program, globalScope);
 
-            AddCommand("");
-            AddCommand("HALT // Program End");
+                AddCommand("");
+                AddCommand("HALT // Program End");
 
-            foreach (var function in preCompiled.Functions)
-                Walk(function, globalScope);
+                foreach (var function in preCompiled.Functions)
+                    Walk(function, globalScope);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Compilation Error:");
+                Console.WriteLine(e.Message);
+                return null;
+            }
 
             File.WriteAllText(fileToCompileTo, outputString.ToString());
             return new Runnable(fileToCompileTo);
@@ -491,6 +505,9 @@ namespace mima_c.compiler
             string start = "while" + (uniqueID++);
             string end = "endWhile" + (uniqueID++);
 
+            loopStartPositionStack.Push(start);
+            loopEndPositionStack.Push(end);
+
             AddCommand(start + ":");
 
             Push(Settings.RegisterPostions[0]);
@@ -509,16 +526,22 @@ namespace mima_c.compiler
             AddCommand(end + ":");
             Pop(Settings.RegisterPostions[0]);
 
+            loopStartPositionStack.Pop();
+            loopEndPositionStack.Pop();
             scope.ResetToCopy();
         }
-        /*void Walk(Break node, Scope scope)
+        void Walk(Break node, Scope scope)
         {
-            throw new BreakExc();
+            AddDescription(node);
+
+            AddCommand("JMP " + loopEndPositionStack.Peek());
         }
         void Walk(Continue node, Scope scope)
         {
-            throw new ContinueExc();
-        }*/
+            AddDescription(node);
+
+            AddCommand("JMP " + loopStartPositionStack.Peek());
+        }
         void Walk(If node, Scope scope)
         {
             // if (Walk(node.condition, scope).Get<int>() != 0)
